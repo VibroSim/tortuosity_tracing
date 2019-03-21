@@ -6,10 +6,12 @@ import hashlib
 from limatix import dc_value
 
 
-def run(_xmldoc,_element):
+def run(_xmldoc,_element,fcutoff_numericunits):
     
     meastags = _xmldoc.xpath("dc:measurement")
     svg_filenames=[]
+
+    fcutoff=dc_fcutoff_numericunits.value(units="m^-1")
 
     for meastag in meastags:
 
@@ -32,11 +34,11 @@ def run(_xmldoc,_element):
      avg_mu,
      avg_filtered_mu,
      avg_sigma,
-     avg_filtered_sigma) = tortuosity_tracing.svg_to_histogram(svg_filenames)
+     avg_filtered_sigma) = tortuosity_tracing.histogram_from_svgs(svg_filenames,f_cutoff)
     
     
     
-    (unfiltered_filename,filtered_filename) = doplots(
+    (unfiltered_filename,filtered_filename) = tortuosity_tracing.tortuosity_plots(
         theta_final,
         thlength_final,
         filtered_final,

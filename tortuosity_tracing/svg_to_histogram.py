@@ -190,7 +190,7 @@ def evenly_spaced_thetas(path_thlength_out,path_theta_out):
 ######################## funtion 3 ########################
 ### Inputs: [sampling_thetas]
 ### Outputs: [filtered],[eq_lengths]
-def filtering(sampling_thetas,d0):
+def filtering(sampling_thetas,d0,f_cutoff):
         N_samp =sampling_thetas.shape[0] #number of sample points
         yf = np.fft.fft(sampling_thetas)
         assert((np.linalg.norm(yf,2)/np.linalg.norm(yf.real,2))-1 <= 1.0)
@@ -241,8 +241,7 @@ def calc_stdv(full_path_xout,
         return (sigma, sigma_F, mu, mu_F)
         pass
 
-print ("lowpass frequency= %.0f") %(f_cutoff)
-def doplots(
+def tortuosity_plots(
         theta_final,
         thlength_final,
         filtered_final,
@@ -292,7 +291,7 @@ def doplots(
 ### Now that the functions are all defined, time to test them.
 
 
-def svg_to_histogram(filenames):
+def histogram_from_svgs(filenames,f_cutoff):
     unfiltered_mu=[]
     filtered_mu=[]
     unfiltered_sigma=[]
@@ -304,7 +303,7 @@ def svg_to_histogram(filenames):
     for i in range(len(filenames)):
 	(full_path_xout, path_theta_out, full_path_yout, full_path_theta_out, full_path_thetax_out, full_path_thetay_out, full_path_thlength_out, path_thlength_out) = get_thetas(filenames,i)
 	(sampling_thetas,d0)=evenly_spaced_thetas(path_thlength_out,path_theta_out)
-	(filtered,eq_lengths,fil_x,fil_y)=filtering(sampling_thetas,d0)
+	(filtered,eq_lengths,fil_x,fil_y)=filtering(sampling_thetas,d0,f_cutoff)
 	(sigma, sigma_F, mu, mu_F)=calc_stdv(full_path_xout,
                                              full_path_yout,
                                              full_path_theta_out,

@@ -1,11 +1,13 @@
- 
- try:
-     import ConfigParser
-     pass
- except ImportError:
-     #python 3
-     import configparser as ConfigParser
-     pass
+import os
+import sys
+from lxml import etree 
+try:
+    import ConfigParser
+    pass
+except ImportError:
+    #python 3
+    import configparser as ConfigParser
+    pass
      
 import StringIO
 from PIL import Image
@@ -20,7 +22,7 @@ except ImportError:
     pass
 
 
-def tiff2svg(input_filename,output_filename):
+def convert_tiff_to_svg(input_filename,output_filename):
     """The objective of this function is to read a given tif image and from it, create a small svg file.
     The svg file will have a locked image that conserves distances.
     The conversion between physical distances and distances in the .svg
