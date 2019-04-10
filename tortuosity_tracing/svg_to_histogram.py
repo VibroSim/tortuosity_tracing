@@ -11,8 +11,8 @@ import glob
 ###          [full_path_thetax_out],[full_path_thetay_out],
 ###          [full_path_thlength_out],[path_thlength_out]
 def get_thetas(filenames,i):
-    name=filenames[i]
-    svgxml=etree.parse(name)
+    filename=filenames[i]
+    svgxml=etree.parse(filename)
         
     # Find <svg:path> elements
     path_els = svgxml.xpath("//svg:path",namespaces={"svg":"http://www.w3.org/2000/svg"})
@@ -58,10 +58,19 @@ def get_thetas(filenames,i):
         if pathcmd == 'm':
             curpos += np.array([ float(pathparam) for pathparam in pathcmds[pathpos:pathpos+2] ],dtype='d')
             pathpos+=2
+
+            more_params = pathpos < len(pathcmds) and not(pathcmds[pathpos].isalpha())
+            if more_params: 
+                raise ValueError("Path in file %s contains line segment(s) (implicit line after move command)" % (filename))
+
             pass
         elif pathcmd == 'M':
             curpos = np.array([ float(pathparam) for pathparam in pathcmds[pathpos:pathpos+2] ],dtype='d')
             pathpos+=2
+
+            more_params = pathpos < len(pathcmds) and not(pathcmds[pathpos].isalpha())
+            if more_params: 
+                raise ValueError("Path in file %s contains line segment(s) (implicit line after move command)" % (filename))
             pass
         elif pathcmd == 'C' or pathcmd == "c":
             # Reference https://www.w3.org/TR/SVG/paths.html#PathElement
@@ -288,7 +297,7 @@ def tortuosity_plots(
         pass
     return (unfiltered_filename,filtered_filename)
 
-### Now that the functions are all defined, time to test them.
+### Now that the functions are all defined, time to use them.
 
 
 def histogram_from_svgs(filenames,f_cutoff):
@@ -296,41 +305,45 @@ def histogram_from_svgs(filenames,f_cutoff):
     filtered_mu=[]
     unfiltered_sigma=[]
     filtered_sigma=[]
+    all_path_xout=[]
+    all_path_yout=[]
     all_theta=[]
     all_thlength=[]
     all_filtered=[]
     all_eq_lengths=[]
+    all_fil_x=[]
+    all_fil_y=[]
     for i in range(len(filenames)):
 	(full_path_xout, path_theta_out, full_path_yout, full_path_theta_out, full_path_thetax_out, full_path_thetay_out, full_path_thlength_out, path_thlength_out) = get_thetas(filenames,i)
 	(sampling_thetas,d0)=evenly_spaced_thetas(path_thlength_out,path_theta_out)
 	(filtered,eq_lengths,fil_x,fil_y)=filtering(sampling_thetas,d0,f_cutoff)
-	(sigma, sigma_F, mu, mu_F)=calc_stdv(full_path_xout,
-                                             full_path_yout,
-                                             full_path_theta_out,
-                                             full_path_thlength_out,
-                                             filtered,eq_lengths,
-                                             fil_x,
-                                             fil_y,
-                                             draw_path=True)
-        unfiltered_mu.append(mu) # mu and sigma in radians
-	filtered_mu.append(mu_F)
-	unfiltered_sigma.append(sigma)
-	filtered_sigma.append(sigma_F)
+
+	all_path_xout.append(full_path_xout[:])
+	all_path_yout.append(full_path_yout[:])
 	all_theta.append(full_path_theta_out[:])
 	all_thlength.append(full_path_thlength_out[:])
 	all_filtered.append(filtered[:])
 	all_eq_lengths.append(eq_lengths[:])
+	all_fil_x.append(fil_x[:])
+	all_fil_y.append(fil_y[:])
 	pass
+    (sigma, sigma_F, mu, mu_F)=calc_stdv(all_path_xout,
+                                         all_path_yout,
+                                         all_theta,
+                                         all_thlength_out,
+                                         all_filtered,
+					 all_eq_lengths,
+                                         all_fil_x,
+                                         all_fil_y,
+                                         draw_path=True)
 
     # !!!*** NOTE: NEED TO DO AVERAGE/STD OVER ALL TRACES TOGETHER
+
     theta_final=np.concatenate(all_theta)
     thlength_final=np.concatenate(all_thlength)
     filtered_final=np.concatenate(all_filtered)
     eq_lengths_final=np.concatenate(all_eq_lengths)
-    avg_mu=np.sum(unfiltered_mu)/len(unfiltered_mu)
-    avg_filtered_mu=np.sum(filtered_mu)/len(filtered_mu)
-    avg_sigma=np.sum(unfiltered_sigma)/len(unfiltered_sigma)
-    avg_filtered_sigma=np.sum(filtered_sigma)/len(filtered_sigma)
+
 
     return (
         theta_final,
@@ -341,14 +354,14 @@ def histogram_from_svgs(filenames,f_cutoff):
         avg_filtered_mu,
         avg_sigma,
         avg_filtered_sigma)
-
+    pass
     #doplots(
     #    theta_final,
     #    thlength_final,
     #    filtered_final,
     #    eq_lengths_final,
-    #    avg_mu,
-    #    avg_filtered_mu,
-    #    avg_sigma,
-    #    avg_filtered_sigma)
+    #    mu,
+    #    filtered_mu,
+    #    sigma,
+    #    filtered_sigma)
 

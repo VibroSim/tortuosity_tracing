@@ -71,6 +71,7 @@ def main(args=None):
         tiff_el = xlg.addelement(meas_el,"dc:tortuositytiff")
         tiff_href = dc_value.hrefvalue(pathname2url(tiff_file),contexthref=".")
         tiff_href.xmlrepr(xlg,tiff_el)
+        measnum+=1
         pass
         
     xlg.close()

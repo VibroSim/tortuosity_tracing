@@ -28,4 +28,4 @@ def run(_xmldoc,_element,dc_tortuositytiff_href):
     
     tortuosity_tracing.convert_tiff_to_svg(tiff_filename,svg_filename)
 
-    return { "dc_tortuositysvg": svg_href }
+    return { "dc:tortuositysvg": svg_href }

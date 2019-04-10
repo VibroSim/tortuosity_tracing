@@ -8,10 +8,10 @@ from limatix import dc_value
 
 def run(_xmldoc,_element,fcutoff_numericunits):
     
-    meastags = _xmldoc.xpath("dc:measurement")
+    meastags = _xmldoc.xpath("dc:measurement[dc:traced_svg]")
     svg_filenames=[]
 
-    fcutoff=dc_fcutoff_numericunits.value(units="m^-1")
+    fcutoff=fcutoff_numericunits.value(units="m^-1")
 
     for meastag in meastags:
 
@@ -23,9 +23,8 @@ def run(_xmldoc,_element,fcutoff_numericunits):
         svg_filenames.append(svg_filename)
         pass
 
-    dest_el = _xmldoc.xpath("dc:summary/dc:dest")
+    dest_el = _xmldoc.xpathsingle("dc:summary/dc:dest")
     dest_href = dc_value.hrefvalue.fromxml(_xmldoc,dest_el)
-    
 
     (theta_final,
      thlength_final,
@@ -34,9 +33,7 @@ def run(_xmldoc,_element,fcutoff_numericunits):
      avg_mu,
      avg_filtered_mu,
      avg_sigma,
-     avg_filtered_sigma) = tortuosity_tracing.histogram_from_svgs(svg_filenames,f_cutoff)
-    
-    
+     avg_filtered_sigma) = tortuosity_tracing.histogram_from_svgs(svg_filenames,fcutoff)
     
     (unfiltered_filename,filtered_filename) = tortuosity_tracing.tortuosity_plots(
         theta_final,
