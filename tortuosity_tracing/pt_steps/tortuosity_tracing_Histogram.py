@@ -28,27 +28,27 @@ def run(_xmldoc,_element,fcutoff_numericunits):
 
     (theta_final,
      thlength_final,
-     filtered_final,
+     filtered_theta_final,
      eq_lengths_final,
-     avg_mu,
-     avg_filtered_mu,
-     avg_sigma,
-     avg_filtered_sigma) = tortuosity_tracing.histogram_from_svgs(svg_filenames,fcutoff)
+     mu,
+     mu_F,
+     sigma,
+     sigma_F) = tortuosity_tracing.histogram_from_svgs(svg_filenames,fcutoff)
     
     (unfiltered_filename,filtered_filename) = tortuosity_tracing.tortuosity_plots(
         theta_final,
         thlength_final,
-        filtered_final,
+        filtered_theta_final,
         eq_lengths_final,
-        avg_mu,
-        avg_filtered_mu,
-        avg_sigma,
-        avg_filtered_sigma,savedir=dest_href.getpath())
+        mu,
+        mu_F,
+        sigma,
+        sigma_F,savedir=dest_href.getpath())
     
     unfiltered_href = dc_value.hrefvalue(unfiltered_filename,contexthref=dest_href)
     filtered_href = dc_value.hrefvalue(filtered_filename,contexthref=dest_href)
-    return { "dc_avg_filtered_mu": dc_value.numericunitsvalue(avg_filtered_mu,"radians"),
-             "dc_avg_filtered_sigma": dc_value.numericunitsvalue(avg_filtered_sigma,"radians"),
+    return { "dc_filtered_mu": dc_value.numericunitsvalue(mu_F,"radians"),
+             "dc_filtered_sigma": dc_value.numericunitsvalue(sigma_F,"radians"),
              "dc_unfiltered_plot": unfiltered_href,
              "dc_filtered_plot": filtered_href
              }
