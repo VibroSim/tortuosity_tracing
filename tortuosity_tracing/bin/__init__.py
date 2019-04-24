@@ -2,8 +2,8 @@ import sys
 import os 
 import os.path
 
-from .svg_to_histogram import histogram_from_svgs,tortuosity_plots
-from .tiff2svg import convert_tiff_to_svg
+from ..svg_to_histogram import histogram_from_svgs,tortuosity_plots
+from ..tiff2svg import convert_tiff_to_svg
 
 try:
     # py2.x
