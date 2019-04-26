@@ -247,14 +247,18 @@ def calc_stdv(full_path_theta_out, full_path_thlength_out, filtered_thetas,eq_le
         sigma_F= np.sqrt(np.average((filtered_thetas-mu_F)**2,weights=eq_lengths))
 	return (sigma, sigma_F, mu, mu_F)
 
-def draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath):
-     pl.figure(20)
+def draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,i,savedir = None):
+     pl.figure(0)
      pl.clf()
-     pl.plot(full_path_xout-full_path_xout[0],full_path_yout-full_path_yout[0],'*',filtered_xpath,filtered_ypath,'*')
+     pl.plot(full_path_xout-full_path_xout[0],full_path_yout-full_path_yout[0],filtered_xpath,filtered_ypath)
      pl.xlabel('Horizontal position (um)')
      pl.ylabel('Vertical position (um)')
      pl.show()
+     if savedir:
+        tortuosity_path="path_comparison(%d).png" %(i+1)
+        pl.savefig(os.path.join(savedir,tortuosity_path),dpi=300)
      # Interesting quantity: sum of theta*length, for left and right
+        pass
      pass
 
 def tortuosity_plots(
@@ -264,16 +268,14 @@ def tortuosity_plots(
         eq_lengths_final,
         avg_mu,
         avg_filtered_mu,
-        avg_sigma,
-        avg_filtered_sigma,
-        savedir = None):
+        avg_sigma,avg_filtered_sigma,savedir):
 
     pl.figure(1)
     pl.clf()
     n_bins=50
     bins=np.linspace(-90.0,90.0,n_bins)
     dbin = (bins[-1]-bins[0])/(n_bins-1) # Theta stepsize per bin
-    (n_01,b_01,p_01)=pl.hist(theta_final[:]*180.0/np.pi,bins=bins,weights=thlength_final*(10e6))
+    (n_01,b_01,p_01)=pl.hist(theta_final[:]*180.0/np.pi,bins=bins,weights=thlength_final*10**6)
     #pl.plot(bins,(1.0/(np.sqrt(2.0*np.pi)*avg_sigma))*np.exp(-(bins*np.pi/180.0-avg_mu)**2.0/ (2.0*avg_sigma**2.0))*np.sum(thlength_final[:])*dbin*np.pi/180.0,'-')#fits to a gaussian curve
     pl.figtext(0.55,0.75,('mu=%.1fdeg\nsigma=%.1fdeg' %(avg_mu*180.0/np.pi,avg_sigma*180.0/np.pi)),bbox={'facecolor':'white','alpha':0.8,'pad':10},fontsize=25)
     pl.title('Angle Distribution',fontsize=30)
@@ -286,9 +288,7 @@ def tortuosity_plots(
 
     pl.figure(2)
     pl.clf()
-
-    (n_02,b_02,p_02)=pl.hist(filtered_thetas[:]*180.0/np.pi,bins=bins,weights=eq_lengths_final*(10e6))
-
+    (n_02,b_02,p_02)=pl.hist(filtered_thetas[:]*180.0/np.pi,bins=bins,weights=eq_lengths_final*10**6)
     #pl.plot(bins,(1.0/(np.sqrt(2.0*np.pi)*avg_filtered_sigma))*np.exp(-(bins*np.pi/180.0-avg_filtered_mu)**2.0/(2.0*avg_filtered_sigma**2.0))*np.sum(eq_lengths_final[:])*dbin*np.pi/180.0,'-') #fits to a gaussian curve
     pl.figtext(0.55,0.75,('mu=%.1fdeg\nsigma=%.1fdeg' %(avg_filtered_mu*180.0/np.pi,avg_filtered_sigma*180.0/np.pi)),bbox={'facecolor':'white','alpha':0.8,'pad':10},fontsize=25)
     pl.title('Filtered Angle Distribution',fontsize=30)
@@ -306,7 +306,7 @@ def tortuosity_plots(
 
 ### Now that the functions are all defined, time to use them.
 
-def histogram_from_svgs(filenames,f_cutoff):
+def histogram_from_svgs(filenames,f_cutoff,savedir):
     all_path_xout=[]
     all_path_yout=[]
     all_theta=[]
@@ -320,6 +320,7 @@ def histogram_from_svgs(filenames,f_cutoff):
 	(full_path_xout, path_theta_out, full_path_yout, full_path_theta_out, full_path_thetax_out, full_path_thetay_out, full_path_thlength_out, path_thlength_out) = get_thetas(filenames,i)
 	(sampling_thetas,d0)=evenly_spaced_thetas(path_thlength_out,path_theta_out)
 	(filtered_theta,eq_lengths,filtered_xpath,filtered_ypath)=filtering(sampling_thetas,d0,f_cutoff)
+	draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,i,savedir)
 	all_path_xout.append(full_path_xout[:])
 	all_path_yout.append(full_path_yout[:])
 	all_theta.append(full_path_theta_out[:])
@@ -328,7 +329,6 @@ def histogram_from_svgs(filenames,f_cutoff):
 	all_eq_lengths.append(eq_lengths[:])
 	all_filtered_xpath.append(filtered_xpath[:])
 	all_filtered_ypath.append(filtered_ypath[:])
-
 	pass
     theta_final=np.concatenate(all_theta)
     thlength_final=np.concatenate(all_thlength)
@@ -345,15 +345,5 @@ def histogram_from_svgs(filenames,f_cutoff):
         mu_F,
         sigma,
         sigma_F)
-
     pass
-    #doplots(
-    #    theta_final,
-    #    thlength_final,
-    #    filtered_thetas,
-    #    eq_lengths_final,
-    #    mu,
-    #    filtered_mu,
-    #    sigma,
-    #    filtered_sigma)
 

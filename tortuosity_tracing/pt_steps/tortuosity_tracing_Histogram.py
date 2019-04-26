@@ -33,7 +33,7 @@ def run(_xmldoc,_element,fcutoff_numericunits):
      mu,
      mu_F,
      sigma,
-     sigma_F) = tortuosity_tracing.histogram_from_svgs(svg_filenames,fcutoff)
+     sigma_F) = tortuosity_tracing.histogram_from_svgs(svg_filenames,fcutoff,dest_href.getpath())
     
     (unfiltered_filename,filtered_filename) = tortuosity_tracing.tortuosity_plots(
         theta_final,
@@ -43,7 +43,7 @@ def run(_xmldoc,_element,fcutoff_numericunits):
         mu,
         mu_F,
         sigma,
-        sigma_F,savedir=dest_href.getpath())
+        sigma_F,dest_href.getpath())
     
     unfiltered_href = dc_value.hrefvalue(unfiltered_filename,contexthref=dest_href)
     filtered_href = dc_value.hrefvalue(filtered_filename,contexthref=dest_href)
