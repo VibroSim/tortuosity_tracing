@@ -10,7 +10,7 @@ import sys
 tortuosity_tracing_package_files=[ "pt_steps/*" ]
 
 
-console_scripts=["tiffs_to_xlg"]
+console_scripts=["tiffs_to_xlg","svg_histograms"]
 #gui_scripts = []  # Could move graphical scrips into here to eliminate stdio window on Windows (where would error messages go?)
 
 console_scripts_entrypoints = [ "%s = tortuosity_tracing.bin.%s:main" % (script,script.replace("-","_")) for script in console_scripts ]

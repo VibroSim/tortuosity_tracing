@@ -26,7 +26,10 @@ def convert_tiff_to_svg(input_filename,output_filename):
     """The objective of this function is to read a given tif image and from it, create a small svg file.
     The svg file will have a locked image that conserves distances.
     The conversion between physical distances and distances in the .svg
-    is:  1 svg mm is equivalent to 1 physical micron
+    is:  1 svg mm is equivalent to 1 physical micron. 
+    This routine gets the scaling factor from the TIFF metadata stored 
+in tag #34682 of TIFF files saved by an FEI SEM microscope, 
+
     """
     config=ConfigParser.ConfigParser()
 
@@ -34,7 +37,7 @@ def convert_tiff_to_svg(input_filename,output_filename):
     #(dirpath,filepart)=os.path.split(filename)
     #(filepartbase,filepartext)=os.path.splitext(filepart)
 
-    # For the FEI SEM microscope, TIFF Tag ID # 34628 contains 
+    # For the FEI SEM microscope, TIFF Tag ID # 34682 contains 
     # the scale calibration as part of a .ini file structure, read with 
     # ConfigParser. 
 

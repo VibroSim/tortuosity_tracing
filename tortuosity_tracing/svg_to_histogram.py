@@ -6,14 +6,29 @@ import pdb
 import glob
 import os
 
-######################## funtion 1 ########################
 ### inputs: [svgfiles],[i] <-- "i" will be assigned in the loop that this function is made to be used for
 ### outputs: [full_path_xout],[path_theta_out],[full_path_yout],[full_path_theta_out],
 ###          [full_path_thetax_out],[full_path_thetay_out],
 ###          [full_path_thlength_out],[path_thlength_out]
-def get_thetas(filenames,i):
-    name=filenames[i]
-    svgxml=etree.parse(name)
+def get_thetas(filename):
+    """ Read the specified .svg file, containing a single spline, 
+as input. A scaling of 1000 between physical units and .svg units 
+is assumed (i.e. 1 mm as recorded in the .svg is actually 1 micron). 
+We break each segment into 20 steps, and return the angle
+of each step and the length of each step, along with x and y coordinates.
+
+    inputs: [filename] : name of .svg file to read
+    outputs: 
+    [full_path_xout]: concatenated x coordinates of the steps starting positions (meters)
+    [path_theta_out]: list of array of angles, in radians, of the segments. 0 means horizontal 
+    [full_path_yout]: concatenated y coordinates of the steps starting positions (meters)
+    [full_path_theta_out], concatenated array of angles, in radians, of the segments
+    [full_path_thetax_out], concatenated array of x coordinates of the steps center positions (meters)
+    [full_path_thetay_out], concatenated array of y coordinates of the steps center positions (meters)
+    [full_path_thlength_out], concatenated array of lengths of each step (meters)
+    [path_thlength_out], list of arrays of step lengths for each segment (meters)
+          """
+    svgxml=etree.parse(filename)
 
     # Find <svg:path> elements
     path_els = svgxml.xpath("//svg:path",namespaces={"svg":"http://www.w3.org/2000/svg"})
@@ -132,7 +147,7 @@ def get_thetas(filenames,i):
                 path_theta_out.append(theta)
                 path_thetax_out.append(theta_x)
                 path_thetay_out.append(theta_y)
-                path_thlength_out.append(th_length*10**-6) #meters
+                path_thlength_out.append(th_length*10**-6) # 10**-6 converts from mm-based SVG with assumed 1000x scale to meters
                 pathpos+=6
                 # Does the spline continue? 
                 more_params = pathpos < len(pathcmds) and not(pathcmds[pathpos].isalpha())
@@ -143,11 +158,11 @@ def get_thetas(filenames,i):
         else:
             raise ValueError("Unknown path command %s" % (pathcmd))
             pass 
-    full_path_xout=np.concatenate(path_xout)*10**-6 # Converted into meters
-    full_path_yout=np.concatenate(path_yout)*10**-6 
+    full_path_xout=np.concatenate(path_xout)*10**-6 # 10**-6 converts from mm-based SVG with assumed 1000x scale to meters
+    full_path_yout=np.concatenate(path_yout)*10**-6 # 10**-6 converts from mm-based SVG with assumed 1000x scale to meters
     full_path_theta_out=np.concatenate(path_theta_out)
-    full_path_thetax_out=np.concatenate(path_thetax_out)
-    full_path_thetay_out=np.concatenate(path_thetay_out)
+    full_path_thetax_out=np.concatenate(path_thetax_out)*1e-6 # 10**-6 converts from mm-based SVG with assumed 1000x scale to meters
+    full_path_thetay_out=np.concatenate(path_thetay_out)*1e-6 # 10**-6 converts from mm-based SVG with assumed 1000x scale to meters
     full_path_thlength_out=np.concatenate(path_thlength_out)
     path_thlength_out=np.array(path_thlength_out, dtype= 'd')
     return (full_path_xout,path_theta_out,full_path_yout,full_path_theta_out, full_path_thetax_out, full_path_thetay_out, full_path_thlength_out, path_thlength_out)
@@ -156,7 +171,14 @@ def get_thetas(filenames,i):
 ######################## funtion 2 ########################
 ### Inputs: [path_thlength_out][path_theta_out]
 ### Outputs: [sampling_thetas]
-def evenly_spaced_thetas(path_thlength_out,path_theta_out):
+def evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing):
+    """
+    Convert inconsistenly-spaced angles to consistently-spaced angles
+    with the given point spacing. 
+
+    point_spacing is the distance between the uniformly spaced
+    points we will return, in meters"""
+
     ### We need to store the actual distances for each segment
     #d_seg=np.zeros(path_thlength_out.shape, dtype= 'd')
     #f=0.0
@@ -172,8 +194,8 @@ def evenly_spaced_thetas(path_thlength_out,path_theta_out):
 
     ### Pull in full crack length data ###
     crack_length= np.max(d_seg) # meters
-    d0=3.0e-7 # distance between evenly spaced points meters
-    crack_dist = np.arange(np.max(d_seg)//d0,dtype='d')*d0
+    #d0=3.0e-7 # distance between evenly spaced points meters
+    crack_dist = np.arange(np.max(d_seg)//point_spacing,dtype='d')*point_spacing
     path_theta_out=np.array(path_theta_out, dtype= 'd')#from touple to array
     sampling_thetas=np.zeros(crack_dist.shape)
 
@@ -199,38 +221,37 @@ def evenly_spaced_thetas(path_thlength_out,path_theta_out):
             pass
 	sampling_thetas[j]=path_theta_out[rownumber,d_idx]
         pass
-    return (sampling_thetas,d0)
+    return sampling_thetas
 
 ######################## funtion 3 ########################
 ### Inputs: [sampling_thetas]
 ### Outputs: [filtered],[eq_lengths]
-def filtering(sampling_thetas,d0,f_cutoff):
-        """ d0 is the uniform distance spacing of the sampling_thetas, in meters
-        f_cutoff is the cutoff spatial frequency in m^-1"""
-        N_samp =sampling_thetas.shape[0] #number of sample points
-        yf = np.fft.fft(sampling_thetas)
-        #assert((np.linalg.norm(yf,2)/np.linalg.norm(yf.real,2))-1 <= 1.0)
-        xf = np.arange(N_samp,dtype='d')/N_samp/d0
-        xf[N_samp//2:] -= 1.0/d0 # symmetric about 0    
-        ### Apply raised cosine/hanning window
-        f_filter_region = (xf > -f_cutoff) & (xf < f_cutoff) #recall: f_cutoff specified by user
-        raised_cos=np.cos((np.pi/4.0)*(2.0/f_cutoff)*xf[f_filter_region])**2.0
-        #creates raised cosine with slope inflection point at f_cutoff/2.0
-        yf[f_filter_region]=yf[f_filter_region]*raised_cos
-        yf[~f_filter_region]=0.0
-	#assert((np.linalg.norm(yf,2)/np.linalg.norm(yf.real,2))-1 <= 1.0)
-        #This assertion compares the 2-norm of complex yf with real yf
-        #this ensures that the complex part is never larger than the real
-        filtered_thetas=np.real(np.fft.ifft(yf)) #can be done because of assertion
-	assert((np.linalg.norm(filtered_thetas.imag,2)/np.linalg.norm(filtered_thetas,2)) <= 1.0e-8)
-        eq_lengths=np.ones(filtered_thetas.shape[0])*d0
-        filtered_ypath=np.cumsum(np.sin(filtered_thetas))*d0
-        filtered_xpath=np.cumsum(np.cos(filtered_thetas))*d0
-        return (filtered_thetas,eq_lengths,filtered_xpath,filtered_ypath)
+def filtering(sampling_thetas,point_spacing,f_cutoff):
+    """point_spacing is the uniform distance spacing of the sampling_thetas, in meters
+    f_cutoff is the cutoff spatial frequency in m^-1"""
+    N_samp =sampling_thetas.shape[0] #number of sample points
+    yf = np.fft.fft(sampling_thetas)
+    #assert((np.linalg.norm(yf,2)/np.linalg.norm(yf.real,2))-1 <= 1.0)
+    xf = np.arange(N_samp,dtype='d')/N_samp/d0
+    xf[N_samp//2:] -= 1.0/d0 # symmetric about 0    
+    ### Apply raised cosine/hanning window
+    f_filter_region = (xf > -f_cutoff) & (xf < f_cutoff) #recall: f_cutoff specified by user
+    raised_cos=np.cos((np.pi/4.0)*(2.0/f_cutoff)*xf[f_filter_region])**2.0
+    #creates raised cosine with slope inflection point at f_cutoff/2.0
+    yf[f_filter_region]=yf[f_filter_region]*raised_cos
+    yf[~f_filter_region]=0.0
+    #assert((np.linalg.norm(yf,2)/np.linalg.norm(yf.real,2))-1 <= 1.0)
+    #This assertion compares the 2-norm of complex yf with real yf
+    #this ensures that the complex part is never larger than the real
+    filtered_thetas=np.real(np.fft.ifft(yf)) #can be done because of assertion
+    assert((np.linalg.norm(filtered_thetas.imag,2)/np.linalg.norm(filtered_thetas,2)) <= 1.0e-8)
+    eq_lengths=np.ones(filtered_thetas.shape[0])*d0
+    filtered_ypath=np.cumsum(np.sin(filtered_thetas))*d0
+    filtered_xpath=np.cumsum(np.cos(filtered_thetas))*d0
+    return (filtered_thetas,eq_lengths,filtered_xpath,filtered_ypath)
 
-        pass
 
-######################## funtion 4 ########################
+######################## function 4 ########################
 ### Inputs: [full_path_xout],[full_path_yout],[full_path_theta_out],
 
 ###         [full_path_thlength_out],[filtered],[eq_lengths],[filtered_xpath],[filtered_ypath],[draw_path=(T/F)]
@@ -254,7 +275,7 @@ def draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,i,save
      pl.xlabel('Horizontal position (um)')
      pl.ylabel('Vertical position (um)')
      pl.show()
-     if savedir:
+     if savedir is not None:
         tortuosity_path="path_comparison(%d).png" %(i+1)
         pl.savefig(os.path.join(savedir,tortuosity_path),dpi=300)
      # Interesting quantity: sum of theta*length, for left and right
@@ -281,7 +302,7 @@ def tortuosity_plots(
     pl.title('Angle Distribution',fontsize=30)
     pl.ylabel('Number of Instances',fontsize=20)
     pl.xlabel('Angle (degrees)',fontsize=20)
-    if savedir:
+    if savedir is not None:
         unfiltered_filename="histogram_unfiltered.png"
         pl.savefig(os.path.join(savedir,unfiltered_filename),dpi=300)
         pass
@@ -294,19 +315,19 @@ def tortuosity_plots(
     pl.title('Filtered Angle Distribution',fontsize=30)
     pl.ylabel('Number of Instances',fontsize=20)
     pl.xlabel('Angle (degrees)',fontsize=20)
-    if savedir:
+    if savedir is not None:
         filtered_filename="histogram_filtered.png"
         pl.savefig(os.path.join(savedir,filtered_filename),dpi=300)
         pass
 
-    if savedir is not None:
-        pl.show()
-        pass
+    #if savedir is not None:
+    #    pl.show()
+    #    pass
     return (unfiltered_filename,filtered_filename)
 
 ### Now that the functions are all defined, time to use them.
 
-def histogram_from_svgs(filenames,f_cutoff,savedir):
+def histogram_from_svgs(filenames,f_cutoff,savedir,point_spacing):
     all_path_xout=[]
     all_path_yout=[]
     all_theta=[]
@@ -317,9 +338,9 @@ def histogram_from_svgs(filenames,f_cutoff,savedir):
     all_filtered_ypath=[]
 
     for i in range(len(filenames)):
-	(full_path_xout, path_theta_out, full_path_yout, full_path_theta_out, full_path_thetax_out, full_path_thetay_out, full_path_thlength_out, path_thlength_out) = get_thetas(filenames,i)
-	(sampling_thetas,d0)=evenly_spaced_thetas(path_thlength_out,path_theta_out)
-	(filtered_theta,eq_lengths,filtered_xpath,filtered_ypath)=filtering(sampling_thetas,d0,f_cutoff)
+	(full_path_xout, path_theta_out, full_path_yout, full_path_theta_out, full_path_thetax_out, full_path_thetay_out, full_path_thlength_out, path_thlength_out) = get_thetas(filenames[i])
+	sampling_thetas=evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing)
+	(filtered_theta,eq_lengths,filtered_xpath,filtered_ypath)=filtering(sampling_thetas,point_spacing,f_cutoff)
 	draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,i,savedir)
 	all_path_xout.append(full_path_xout[:])
 	all_path_yout.append(full_path_yout[:])

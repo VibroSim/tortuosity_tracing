@@ -6,7 +6,7 @@ import hashlib
 from limatix import dc_value
 
 
-def run(_xmldoc,_element,fcutoff_numericunits):
+def run(_xmldoc,_element,fcutoff_numericunits,point_spacing_numericunits=dc_value.numericunitsvalue(1.0e-7,"m")):
     
     meastags = _xmldoc.xpath("dc:measurement[dc:traced_svg]")
     svg_filenames=[]
@@ -33,7 +33,7 @@ def run(_xmldoc,_element,fcutoff_numericunits):
      mu,
      mu_F,
      sigma,
-     sigma_F) = tortuosity_tracing.histogram_from_svgs(svg_filenames,fcutoff,dest_href.getpath())
+     sigma_F) = tortuosity_tracing.histogram_from_svgs(svg_filenames,fcutoff,dest_href.getpath(),point_spacing_numericunits.value(units="m"))
     
     (unfiltered_filename,filtered_filename) = tortuosity_tracing.tortuosity_plots(
         theta_final,
