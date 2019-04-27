@@ -32,7 +32,8 @@ def main(args=None):
      mu,
      mu_F,
      sigma,
-     sigma_F) = histogram_from_svgs(svg_filenames,fcutoff,None,point_spacing)
+     sigma_F,
+     tortuosity_path_filenames) = histogram_from_svgs(svg_files,None,fcutoff,None,point_spacing)
     
     (unfiltered_filename,filtered_filename) = tortuosity_plots(
         theta_final,

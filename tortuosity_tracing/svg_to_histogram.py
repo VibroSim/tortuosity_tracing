@@ -232,8 +232,8 @@ def filtering(sampling_thetas,point_spacing,f_cutoff):
     N_samp =sampling_thetas.shape[0] #number of sample points
     yf = np.fft.fft(sampling_thetas)
     #assert((np.linalg.norm(yf,2)/np.linalg.norm(yf.real,2))-1 <= 1.0)
-    xf = np.arange(N_samp,dtype='d')/N_samp/d0
-    xf[N_samp//2:] -= 1.0/d0 # symmetric about 0    
+    xf = np.arange(N_samp,dtype='d')/N_samp/point_spacing
+    xf[N_samp//2:] -= 1.0/point_spacing # symmetric about 0    
     ### Apply raised cosine/hanning window
     f_filter_region = (xf > -f_cutoff) & (xf < f_cutoff) #recall: f_cutoff specified by user
     raised_cos=np.cos((np.pi/4.0)*(2.0/f_cutoff)*xf[f_filter_region])**2.0
@@ -245,9 +245,9 @@ def filtering(sampling_thetas,point_spacing,f_cutoff):
     #this ensures that the complex part is never larger than the real
     filtered_thetas=np.real(np.fft.ifft(yf)) #can be done because of assertion
     assert((np.linalg.norm(filtered_thetas.imag,2)/np.linalg.norm(filtered_thetas,2)) <= 1.0e-8)
-    eq_lengths=np.ones(filtered_thetas.shape[0])*d0
-    filtered_ypath=np.cumsum(np.sin(filtered_thetas))*d0
-    filtered_xpath=np.cumsum(np.cos(filtered_thetas))*d0
+    eq_lengths=np.ones(filtered_thetas.shape[0])*point_spacing
+    filtered_ypath=np.cumsum(np.sin(filtered_thetas))*point_spacing
+    filtered_xpath=np.cumsum(np.cos(filtered_thetas))*point_spacing
     return (filtered_thetas,eq_lengths,filtered_xpath,filtered_ypath)
 
 
@@ -268,19 +268,30 @@ def calc_stdv(full_path_theta_out, full_path_thlength_out, filtered_thetas,eq_le
         sigma_F= np.sqrt(np.average((filtered_thetas-mu_F)**2,weights=eq_lengths))
 	return (sigma, sigma_F, mu, mu_F)
 
-def draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,i,savedir = None):
-     pl.figure(0)
-     pl.clf()
-     pl.plot(full_path_xout-full_path_xout[0],full_path_yout-full_path_yout[0],filtered_xpath,filtered_ypath)
-     pl.xlabel('Horizontal position (um)')
-     pl.ylabel('Vertical position (um)')
-     pl.show()
-     if savedir is not None:
-        tortuosity_path="path_comparison(%d).png" %(i+1)
-        pl.savefig(os.path.join(savedir,tortuosity_path),dpi=300)
-     # Interesting quantity: sum of theta*length, for left and right
+def draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnum,savedir = None):
+    pl.figure()
+    pl.clf()
+    pl.plot((full_path_xout-full_path_xout[0])*1.e6,(full_path_yout-full_path_yout[0])*1.e6,'-',
+            filtered_xpath*1.e6,filtered_ypath*1.e6,'-')
+    pl.xlabel('Horizontal position (um)')
+    pl.ylabel('Vertical position (um)')
+    if measnum is not None:
+        pl.title('Original and filtered path; measnum=%d' % (measnum))
         pass
-     pass
+    else:
+        pl.title('Original and filtered path')
+        pass
+
+    if savedir is not None:
+        tortuosity_path_filename="path_comparison_meas%3.3d.png" %(measnum)
+        pl.savefig(os.path.join(savedir,tortuosity_path_filename),dpi=300)
+        # Interesting quantity: sum of theta*length, for left and right
+        pass
+    else:
+        tortuosity_path_filename=None
+        pass
+    return tortuosity_path_filename
+     
 
 def tortuosity_plots(
         theta_final,
@@ -291,7 +302,7 @@ def tortuosity_plots(
         avg_filtered_mu,
         avg_sigma,avg_filtered_sigma,savedir):
 
-    pl.figure(1)
+    pl.figure()
     pl.clf()
     n_bins=50
     bins=np.linspace(-90.0,90.0,n_bins)
@@ -306,8 +317,11 @@ def tortuosity_plots(
         unfiltered_filename="histogram_unfiltered.png"
         pl.savefig(os.path.join(savedir,unfiltered_filename),dpi=300)
         pass
+    else:
+        unfiltered_filename=None
+        pass
 
-    pl.figure(2)
+    pl.figure()
     pl.clf()
     (n_02,b_02,p_02)=pl.hist(filtered_thetas[:]*180.0/np.pi,bins=bins,weights=eq_lengths_final*10**6)
     #pl.plot(bins,(1.0/(np.sqrt(2.0*np.pi)*avg_filtered_sigma))*np.exp(-(bins*np.pi/180.0-avg_filtered_mu)**2.0/(2.0*avg_filtered_sigma**2.0))*np.sum(eq_lengths_final[:])*dbin*np.pi/180.0,'-') #fits to a gaussian curve
@@ -319,6 +333,10 @@ def tortuosity_plots(
         filtered_filename="histogram_filtered.png"
         pl.savefig(os.path.join(savedir,filtered_filename),dpi=300)
         pass
+    else:
+        filtered_filename=None
+        pass
+        
 
     #if savedir is not None:
     #    pl.show()
@@ -327,7 +345,7 @@ def tortuosity_plots(
 
 ### Now that the functions are all defined, time to use them.
 
-def histogram_from_svgs(filenames,f_cutoff,savedir,point_spacing):
+def histogram_from_svgs(filenames,measnums,f_cutoff,savedir,point_spacing):
     all_path_xout=[]
     all_path_yout=[]
     all_theta=[]
@@ -336,12 +354,21 @@ def histogram_from_svgs(filenames,f_cutoff,savedir,point_spacing):
     all_eq_lengths=[]
     all_filtered_xpath=[]
     all_filtered_ypath=[]
+    tortuosity_path_filenames=[]
 
     for i in range(len(filenames)):
 	(full_path_xout, path_theta_out, full_path_yout, full_path_theta_out, full_path_thetax_out, full_path_thetay_out, full_path_thlength_out, path_thlength_out) = get_thetas(filenames[i])
 	sampling_thetas=evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing)
 	(filtered_theta,eq_lengths,filtered_xpath,filtered_ypath)=filtering(sampling_thetas,point_spacing,f_cutoff)
-	draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,i,savedir)
+        if measnums is None:
+            measnum=None
+            pass
+        else :
+            measnum=measnums[i]
+            pass
+            
+	tortuosity_path_filename=draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnum,savedir)
+        tortuosity_path_filenames.append(tortuosity_path_filename)
 	all_path_xout.append(full_path_xout[:])
 	all_path_yout.append(full_path_yout[:])
 	all_theta.append(full_path_theta_out[:])
@@ -365,6 +392,7 @@ def histogram_from_svgs(filenames,f_cutoff,savedir,point_spacing):
         mu,
         mu_F,
         sigma,
-        sigma_F)
+        sigma_F,
+        tortuosity_path_filenames)
     pass
 

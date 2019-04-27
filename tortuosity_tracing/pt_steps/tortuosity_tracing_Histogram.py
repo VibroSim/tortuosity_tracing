@@ -9,6 +9,7 @@ from limatix import dc_value
 def run(_xmldoc,_element,fcutoff_numericunits,point_spacing_numericunits=dc_value.numericunitsvalue(1.0e-7,"m")):
     
     meastags = _xmldoc.xpath("dc:measurement[dc:traced_svg]")
+    svg_measnums = []
     svg_filenames=[]
 
     fcutoff=fcutoff_numericunits.value(units="m^-1")
@@ -19,8 +20,12 @@ def run(_xmldoc,_element,fcutoff_numericunits,point_spacing_numericunits=dc_valu
         svg_href = dc_value.hrefvalue.fromxml(_xmldoc,svgfile)
         
         svg_filename = svg_href.getpath()
-        
+
+        svg_measnum = int(_xmldoc.xpathsinglecontext(meastag,"string(dc:measnum)"))
+
         svg_filenames.append(svg_filename)
+        svg_measnums.append(svg_measnum)
+
         pass
 
     dest_el = _xmldoc.xpathsingle("dc:summary/dc:dest")
@@ -33,8 +38,11 @@ def run(_xmldoc,_element,fcutoff_numericunits,point_spacing_numericunits=dc_valu
      mu,
      mu_F,
      sigma,
-     sigma_F) = tortuosity_tracing.histogram_from_svgs(svg_filenames,fcutoff,dest_href.getpath(),point_spacing_numericunits.value(units="m"))
+     sigma_F,
+     tortuosity_path_filenames) = tortuosity_tracing.histogram_from_svgs(svg_filenames,svg_measnums,fcutoff,dest_href.getpath(),point_spacing_numericunits.value(units="m"))
     
+    assert(len(tortuosity_path_filenames)==len(svg_filenames))
+
     (unfiltered_filename,filtered_filename) = tortuosity_tracing.tortuosity_plots(
         theta_final,
         thlength_final,
@@ -47,8 +55,15 @@ def run(_xmldoc,_element,fcutoff_numericunits,point_spacing_numericunits=dc_valu
     
     unfiltered_href = dc_value.hrefvalue(unfiltered_filename,contexthref=dest_href)
     filtered_href = dc_value.hrefvalue(filtered_filename,contexthref=dest_href)
-    return { "dc_filtered_mu": dc_value.numericunitsvalue(mu_F,"radians"),
-             "dc_filtered_sigma": dc_value.numericunitsvalue(sigma_F,"radians"),
-             "dc_unfiltered_plot": unfiltered_href,
-             "dc_filtered_plot": filtered_href
-             }
+    retval = [ ("dc_filtered_mu", dc_value.numericunitsvalue(mu_F,"radians")),
+             ("dc_filtered_sigma", dc_value.numericunitsvalue(sigma_F,"radians")),
+             ("dc_unfiltered_plot", unfiltered_href),
+             ("dc_filtered_plot", filtered_href),
+        ]
+
+    for filecnt  in range(len(tortuosity_path_filenames)):
+        tortuosity_path_filename = tortuosity_path_filenames[filecnt]
+        retval.append((("dc_path_comparison", { "measnum" : str(svg_measnums[filecnt]) }), dc_value.hrefvalue(tortuosity_path_filename,contexthref=dest_href)))
+        
+        pass
+    return retval
