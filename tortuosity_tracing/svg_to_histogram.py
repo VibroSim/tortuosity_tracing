@@ -105,6 +105,10 @@ of each step and the length of each step, along with x and y coordinates.
 
                 if pathcmd=='c':
                     # relative
+		    if x1==0 and x2==0 and x==0 and y==0 and y1==0 and y2==0:
+			# Throws error if multiple nodes are in one spot. This would result in undefined slopes.
+			raise ValueError("Path in file "+str(filename)+" contains multiple nodes in the same position.\nPlease check the .svg file")
+			pass
                     x1=curpos[0]+x1
                     y1=curpos[1]+y1
                     x2=curpos[0]+x2
