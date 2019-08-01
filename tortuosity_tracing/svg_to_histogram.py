@@ -312,7 +312,7 @@ def tortuosity_plots(
     bins=np.linspace(-90.0,90.0,n_bins)
     dbin = (bins[-1]-bins[0])/(n_bins-1) # Theta stepsize per bin
     (n_01,b_01,p_01)=pl.hist(theta_final[:]*180.0/np.pi,bins=bins,weights=thlength_final*10**6)
-    #pl.plot(bins,(1.0/(np.sqrt(2.0*np.pi)*avg_sigma))*np.exp(-(bins*np.pi/180.0-avg_mu)**2.0/ (2.0*avg_sigma**2.0))*np.sum(thlength_final[:])*dbin*np.pi/180.0,'-')#fits to a gaussian curve
+    pl.plot(bins,(1.0/(np.sqrt(2.0*np.pi)*avg_sigma))*np.exp(-(bins*np.pi/180.0-avg_mu)**2.0/ (2.0*avg_sigma**2.0))*np.sum(thlength_final[:])*dbin*np.pi/180.0,'-')#fits to a gaussian curve
     pl.figtext(0.55,0.75,('mu=%.1fdeg\nsigma=%.1fdeg' %(avg_mu*180.0/np.pi,avg_sigma*180.0/np.pi)),bbox={'facecolor':'white','alpha':0.8,'pad':10},fontsize=25)
     pl.title('Angle Distribution',fontsize=30)
     pl.ylabel('Number of Instances',fontsize=20)
@@ -328,7 +328,7 @@ def tortuosity_plots(
     pl.figure()
     pl.clf()
     (n_02,b_02,p_02)=pl.hist(filtered_thetas[:]*180.0/np.pi,bins=bins,weights=eq_lengths_final*10**6)
-    #pl.plot(bins,(1.0/(np.sqrt(2.0*np.pi)*avg_filtered_sigma))*np.exp(-(bins*np.pi/180.0-avg_filtered_mu)**2.0/(2.0*avg_filtered_sigma**2.0))*np.sum(eq_lengths_final[:])*dbin*np.pi/180.0,'-') #fits to a gaussian curve
+    pl.plot(bins,(1.0/(np.sqrt(2.0*np.pi)*avg_filtered_sigma))*np.exp(-(bins*np.pi/180.0-avg_filtered_mu)**2.0/(2.0*avg_filtered_sigma**2.0))*np.sum(eq_lengths_final[:])*dbin*np.pi/180.0,'-') #fits to a gaussian curve
     pl.figtext(0.55,0.75,('mu=%.1fdeg\nsigma=%.1fdeg' %(avg_filtered_mu*180.0/np.pi,avg_filtered_sigma*180.0/np.pi)),bbox={'facecolor':'white','alpha':0.8,'pad':10},fontsize=25)
     pl.title('Filtered Angle Distribution',fontsize=30)
     pl.ylabel('Number of Instances',fontsize=20)
