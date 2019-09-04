@@ -105,10 +105,10 @@ of each step and the length of each step, along with x and y coordinates.
 
                 if pathcmd=='c':
                     # relative
-		    if x1==0 and x2==0 and x==0 and y==0 and y1==0 and y2==0:
-			# Throws error if multiple nodes are in one spot. This would result in undefined slopes.
-			raise ValueError("Path in file "+str(filename)+" contains multiple nodes in the same position.\nPlease check the .svg file")
-			pass
+                    if x1==0 and x2==0 and x==0 and y==0 and y1==0 and y2==0:
+                        # Throws error if multiple nodes are in one spot. This would result in undefined slopes.
+                        raise ValueError("Path in file "+str(filename)+" contains multiple nodes in the same position.\nPlease check the .svg file")
+                        pass
                     x1=curpos[0]+x1
                     y1=curpos[1]+y1
                     x2=curpos[0]+x2
@@ -187,10 +187,10 @@ def evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing):
     #d_seg=np.zeros(path_thlength_out.shape, dtype= 'd')
     #f=0.0
     #for i in range(path_thlength_out.shape[0]):
-    #	for j in range(path_thlength_out.shape[1]):
-    #		g=path_thlength_out[i,j]+f
-    #		d_seg[i,j]=f
-    #		f=g
+    #   for j in range(path_thlength_out.shape[1]):
+    #           g=path_thlength_out[i,j]+f
+    #           d_seg[i,j]=f
+    #           f=g
     # This is done in 1 line where
     # d_seg[i,j] represents the jth element of the i'th point click
     # based on each segment being split into ~ 20 pieces (i)
@@ -208,22 +208,22 @@ def evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing):
     # pick out elements closest to sample_dist
     rownumber=0
     for j in range(crack_dist.shape[0]):
-    	FoundMyIndex= False
-	while not FoundMyIndex and rownumber < d_seg.shape[0]:	
-	    d_idx = np.argmin(np.abs(d_seg[rownumber,:]-crack_dist[j]))
-	    if d_idx< d_seg.shape[1]-1 or (rownumber<d_seg.shape[0]-1 and np.abs(d_seg[rownumber+1,0]-crack_dist[j])>np.abs(d_seg[rownumber,d_idx]-crack_dist[j])) :
-    		FoundMyIndex= True
-		pass
-	    else:
-		rownumber += 1
-		pass
-	    pass
-	if rownumber == d_seg.shape[0]:
+        FoundMyIndex= False
+        while not FoundMyIndex and rownumber < d_seg.shape[0]:  
+            d_idx = np.argmin(np.abs(d_seg[rownumber,:]-crack_dist[j]))
+            if d_idx< d_seg.shape[1]-1 or (rownumber<d_seg.shape[0]-1 and np.abs(d_seg[rownumber+1,0]-crack_dist[j])>np.abs(d_seg[rownumber,d_idx]-crack_dist[j])) :
+                FoundMyIndex= True
+                pass
+            else:
+                rownumber += 1
+                pass
+            pass
+        if rownumber == d_seg.shape[0]:
             # overrun... use last element
-	    rownumber = d_seg.shape[0]-1
+            rownumber = d_seg.shape[0]-1
             d_idx=d_seg.shape[1]-1
             pass
-	sampling_thetas[j]=path_theta_out[rownumber,d_idx]
+        sampling_thetas[j]=path_theta_out[rownumber,d_idx]
         pass
     return sampling_thetas
 
@@ -270,7 +270,7 @@ def calc_stdv(full_path_theta_out, full_path_thlength_out, filtered_thetas,eq_le
 
         mu_F = np.average(filtered_thetas,weights=eq_lengths)
         sigma_F= np.sqrt(np.average((filtered_thetas-mu_F)**2,weights=eq_lengths))
-	return (sigma, sigma_F, mu, mu_F)
+        return (sigma, sigma_F, mu, mu_F)
 
 def draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnum,specimen,savedir = None):
     pl.figure()
@@ -298,7 +298,7 @@ def draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnu
      
 
 def tortuosity_plots(
-	filenames,
+        filenames,
         theta_final,
         thlength_final,
         filtered_thetas,
@@ -362,9 +362,9 @@ def histogram_from_svgs(filenames,measnums,f_cutoff,savedir,point_spacing):
     tortuosity_path_filenames=[]
 
     for i in range(len(filenames)):
-	(full_path_xout, path_theta_out, full_path_yout, full_path_theta_out, full_path_thetax_out, full_path_thetay_out, full_path_thlength_out, path_thlength_out) = get_thetas(filenames[i])
-	sampling_thetas=evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing)
-	(filtered_theta,eq_lengths,filtered_xpath,filtered_ypath)=filtering(sampling_thetas,point_spacing,f_cutoff)
+        (full_path_xout, path_theta_out, full_path_yout, full_path_theta_out, full_path_thetax_out, full_path_thetay_out, full_path_thlength_out, path_thlength_out) = get_thetas(filenames[i])
+        sampling_thetas=evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing)
+        (filtered_theta,eq_lengths,filtered_xpath,filtered_ypath)=filtering(sampling_thetas,point_spacing,f_cutoff)
         if measnums is None:
             measnum=None
             pass
@@ -372,17 +372,17 @@ def histogram_from_svgs(filenames,measnums,f_cutoff,savedir,point_spacing):
             measnum=measnums[i]
             pass
             
-	tortuosity_path_filename=draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnum,filenames[i].split('/')[1][:-4],savedir)
+        tortuosity_path_filename=draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnum,filenames[i].split('/')[1][:-4],savedir)
         tortuosity_path_filenames.append(tortuosity_path_filename)
-	all_path_xout.append(full_path_xout[:])
-	all_path_yout.append(full_path_yout[:])
-	all_theta.append(full_path_theta_out[:])
-	all_thlength.append(full_path_thlength_out[:])
-	all_filtered_theta.append(filtered_theta[:])
-	all_eq_lengths.append(eq_lengths[:])
-	all_filtered_xpath.append(filtered_xpath[:])
-	all_filtered_ypath.append(filtered_ypath[:])
-	pass
+        all_path_xout.append(full_path_xout[:])
+        all_path_yout.append(full_path_yout[:])
+        all_theta.append(full_path_theta_out[:])
+        all_thlength.append(full_path_thlength_out[:])
+        all_filtered_theta.append(filtered_theta[:])
+        all_eq_lengths.append(eq_lengths[:])
+        all_filtered_xpath.append(filtered_xpath[:])
+        all_filtered_ypath.append(filtered_ypath[:])
+        pass
     theta_final=np.concatenate(all_theta)
     thlength_final=np.concatenate(all_thlength)
     filtered_theta_final=np.concatenate(all_filtered_theta)
