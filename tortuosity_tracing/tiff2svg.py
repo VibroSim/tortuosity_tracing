@@ -87,20 +87,27 @@ def convert_tiff_to_svg(input_filename,output_filename):
         pass
     else:
         inidata=img.tag
-        ResolutionX=float(inidata[282][0][0]/inidata[282][0][1])
-        ResolutionY=float(inidata[283][0][0]/inidata[283][0][1])
+        #ResolutionX=float(inidata[282][0][0]/inidata[282][0][1])
+        #ResolutionY=float(inidata[283][0][0]/inidata[283][0][1])
         ImageWidth=float(inidata[256][0])
         ImageHeight=float(inidata[257][0])
+        ### ^ for reading the .TIFF files
         
+        ### This is a temperary fix with an approximate value for
+        ### the resolution based on a .CSV from the microscope.
+        ### This shouldn't change too much if we use the same settings
+        ### for each trace.
+
+        ResolutionX=.129e-6#[m/px]
+        ResolutionY=.126e-6#[m/px]
         #width[mm]=([px]*[mm/in])/[px/in]
         tif_width=(ImageWidth*25.4)/ResolutionX # physical width in mm of image as read from .tiff
         tif_height=(ImageHeight*25.4)/ResolutionY # physical height in mm of image as read from .tiff
 
-        # tif_width is in physical mm
-        # svg_width needs to be in svg_mm
-        # make 1 svg mm =1 physical um
-        svg_width= tif_width*10.0
-        svg_height=tif_height*10.0
+        # let's make 1um = 1 svg mm => tif_dimmension*1000
+        svg_width= tif_width*1.0e6
+        svg_height=tif_height*1.0e6
+        #pdb.set_trace()
         pass
     #Now, to build the svg file
     #load in the template
