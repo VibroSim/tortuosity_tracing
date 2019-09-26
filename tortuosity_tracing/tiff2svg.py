@@ -101,8 +101,8 @@ def convert_tiff_to_svg(input_filename,output_filename):
         ResolutionX=.129e-6#[m/px]
         ResolutionY=.126e-6#[m/px]
         #width[mm]=([px]*[mm/in])/[px/in]
-        tif_width=(ImageWidth*25.4)/ResolutionX # physical width in mm of image as read from .tiff
-        tif_height=(ImageHeight*25.4)/ResolutionY # physical height in mm of image as read from .tiff
+        tif_width=ImageWidth*ResolutionX # [m]
+        tif_height=ImageHeight*ResolutionY # [m]
 
         # let's make 1um = 1 svg mm => tif_dimmension*1000
         svg_width= tif_width*1.0e6
