@@ -208,11 +208,11 @@ def evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing):
     # pick out elements closest to sample_dist
     rownumber=0
     for j in range(crack_dist.shape[0]):
-            FoundMyIndex= False
+        FoundMyIndex= False
         while not FoundMyIndex and rownumber < d_seg.shape[0]:        
             d_idx = np.argmin(np.abs(d_seg[rownumber,:]-crack_dist[j]))
             if d_idx< d_seg.shape[1]-1 or (rownumber<d_seg.shape[0]-1 and np.abs(d_seg[rownumber+1,0]-crack_dist[j])>np.abs(d_seg[rownumber,d_idx]-crack_dist[j])) :
-                    FoundMyIndex= True
+                FoundMyIndex= True
                 pass
             else:
                 rownumber += 1
