@@ -272,7 +272,7 @@ def calc_stdv(full_path_theta_out, full_path_thlength_out, filtered_thetas,eq_le
         sigma_F= np.sqrt(np.average((filtered_thetas-mu_F)**2,weights=eq_lengths))
         return (sigma, sigma_F, mu, mu_F)
 
-def draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnum,savedir = None):
+def draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnum,specimen,savedir = None):
     pl.figure()
     pl.clf()
     pl.plot((full_path_xout-full_path_xout[0])*1.e6,(full_path_yout-full_path_yout[0])*1.e6,'-',
@@ -287,7 +287,7 @@ def draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnu
         pass
 
     if savedir is not None:
-        tortuosity_path_filename="path_comparison_meas%3.3d.png" %(measnum)
+        tortuosity_path_filename="path_comparison_{}_meas%3.3d.png".format(specimen) %(measnum)
         pl.savefig(os.path.join(savedir,tortuosity_path_filename),dpi=300)
         # Interesting quantity: sum of theta*length, for left and right
         pass
