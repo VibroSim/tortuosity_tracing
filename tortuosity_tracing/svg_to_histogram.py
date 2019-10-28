@@ -229,7 +229,7 @@ def evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing):
 
 ######################## funtion 3 ########################
 ### Inputs: [sampling_thetas]
-### Outputs: [filtered],[eq_lengths]
+### Outputs: [filtered],[eq_lengths] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Need to change the filter!!!!!!!!!!!!!
 def filtering(sampling_thetas,point_spacing,f_cutoff):
     """point_spacing is the uniform distance spacing of the sampling_thetas, in meters
     f_cutoff is the cutoff spatial frequency in m^-1"""
