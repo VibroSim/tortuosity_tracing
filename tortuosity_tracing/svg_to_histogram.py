@@ -187,10 +187,10 @@ def evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing):
     #d_seg=np.zeros(path_thlength_out.shape, dtype= 'd')
     #f=0.0
     #for i in range(path_thlength_out.shape[0]):
-    #        for j in range(path_thlength_out.shape[1]):
-    #                g=path_thlength_out[i,j]+f
-    #                d_seg[i,j]=f
-    #                f=g
+    #   for j in range(path_thlength_out.shape[1]):
+    #           g=path_thlength_out[i,j]+f
+    #           d_seg[i,j]=f
+    #           f=g
     # This is done in 1 line where
     # d_seg[i,j] represents the jth element of the i'th point click
     # based on each segment being split into ~ 20 pieces (i)
@@ -209,7 +209,7 @@ def evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing):
     rownumber=0
     for j in range(crack_dist.shape[0]):
         FoundMyIndex= False
-        while not FoundMyIndex and rownumber < d_seg.shape[0]:        
+        while not FoundMyIndex and rownumber < d_seg.shape[0]:  
             d_idx = np.argmin(np.abs(d_seg[rownumber,:]-crack_dist[j]))
             if d_idx< d_seg.shape[1]-1 or (rownumber<d_seg.shape[0]-1 and np.abs(d_seg[rownumber+1,0]-crack_dist[j])>np.abs(d_seg[rownumber,d_idx]-crack_dist[j])) :
                 FoundMyIndex= True
@@ -298,6 +298,7 @@ def draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnu
      
 
 def tortuosity_plots(
+        filenames,
         theta_final,
         thlength_final,
         filtered_thetas,
@@ -305,7 +306,7 @@ def tortuosity_plots(
         avg_mu,
         avg_filtered_mu,
         avg_sigma,avg_filtered_sigma,savedir):
-
+  for i in range(len(filenames)):
     pl.figure()
     pl.clf()
     n_bins=50
@@ -318,7 +319,7 @@ def tortuosity_plots(
     pl.ylabel('Number of Instances',fontsize=20)
     pl.xlabel('Angle (degrees)',fontsize=20)
     if savedir is not None:
-        unfiltered_filename="histogram_unfiltered.png"
+        unfiltered_filename="{}_histogram_unfiltered.png".format(filenames[i].split('_')[2])
         pl.savefig(os.path.join(savedir,unfiltered_filename),dpi=300)
         pass
     else:
@@ -334,7 +335,7 @@ def tortuosity_plots(
     pl.ylabel('Number of Instances',fontsize=20)
     pl.xlabel('Angle (degrees)',fontsize=20)
     if savedir is not None:
-        filtered_filename="histogram_filtered.png"
+        filtered_filename="{}_histogram_filtered.png".format(filenames[i].split('_')[2])
         pl.savefig(os.path.join(savedir,filtered_filename),dpi=300)
         pass
     else:
@@ -370,8 +371,8 @@ def histogram_from_svgs(filenames,measnums,f_cutoff,savedir,point_spacing):
         else :
             measnum=measnums[i]
             pass
-            
-        tortuosity_path_filename=draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnum,savedir)
+
+        tortuosity_path_filename=draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnum,filenames[i].split('/')[1][:-4],savedir)
         tortuosity_path_filenames.append(tortuosity_path_filename)
         all_path_xout.append(full_path_xout[:])
         all_path_yout.append(full_path_yout[:])

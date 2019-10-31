@@ -44,6 +44,7 @@ def run(_xmldoc,_element,fcutoff_numericunits,point_spacing_numericunits=dc_valu
     assert(len(tortuosity_path_filenames)==len(svg_filenames))
 
     (unfiltered_filename,filtered_filename) = tortuosity_tracing.tortuosity_plots(
+	tortuosity_path_filenames,
         theta_final,
         thlength_final,
         filtered_theta_final,
@@ -55,15 +56,15 @@ def run(_xmldoc,_element,fcutoff_numericunits,point_spacing_numericunits=dc_valu
     
     unfiltered_href = dc_value.hrefvalue(unfiltered_filename,contexthref=dest_href)
     filtered_href = dc_value.hrefvalue(filtered_filename,contexthref=dest_href)
-    retval = [ ("dc_filtered_mu", dc_value.numericunitsvalue(mu_F,"radians")),
-             ("dc_filtered_sigma", dc_value.numericunitsvalue(sigma_F,"radians")),
-             ("dc_unfiltered_plot", unfiltered_href),
-             ("dc_filtered_plot", filtered_href),
+    retval = [ ("dc:filtered_mu", dc_value.numericunitsvalue(mu_F,"radians")),
+             ("dc:filtered_sigma", dc_value.numericunitsvalue(sigma_F,"radians")),
+             ("dc:unfiltered_plot", unfiltered_href),
+             ("dc:filtered_plot", filtered_href),
         ]
 
     for filecnt  in range(len(tortuosity_path_filenames)):
         tortuosity_path_filename = tortuosity_path_filenames[filecnt]
-        retval.append((("dc_path_comparison", { "measnum" : str(svg_measnums[filecnt]) }), dc_value.hrefvalue(tortuosity_path_filename,contexthref=dest_href)))
+        retval.append((("dc:path_comparison", { "measnum" : str(svg_measnums[filecnt]) }), dc_value.hrefvalue(tortuosity_path_filename,contexthref=dest_href)))
         
         pass
     return retval

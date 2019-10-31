@@ -38,7 +38,7 @@ def main(args=None):
     mean=np.mean(thlength_final)
     StDv=np.std(thlength_final)
     #print(mean,StDv)
-    pl.figure()
+    fig = pl.figure(str(svg_files))
     pl.clf()
     #svg_to_histogram.py [49] divides spaces between clicks into 20 steps
     #So, to get distance between point clicks, we need to multiply back

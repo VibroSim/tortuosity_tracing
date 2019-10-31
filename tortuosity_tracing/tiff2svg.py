@@ -9,7 +9,10 @@ except ImportError:
     import configparser as ConfigParser
     pass
      
-import StringIO
+try: 
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 from PIL import Image
 from PIL.TiffTags import TAGS
 
@@ -45,7 +48,7 @@ def convert_tiff_to_svg(input_filename,output_filename):
         #inidata.get
         #use img.tag.keys() to view the dictionary
         #34682 corresponds to the entry from the microscope
-        inidatafh=StringIO.StringIO(inidata)
+        inidatafh=StringIO(inidata)
         config.readfp(inidatafh)
         sections=config.sections()
         ''' These are the elements in 'inidata' (Tag #34682)
