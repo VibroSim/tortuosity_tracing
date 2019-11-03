@@ -5,10 +5,11 @@ from lxml import etree
 import pdb
 import glob
 import os
+import os.path
 
 
 def get_num_paths(filename):
-""" Return number of paths in the specified file"""
+    """ Return number of paths in the specified file"""
     svgxml=etree.parse(filename)
 
     # Find <svg:path> elements
@@ -282,7 +283,7 @@ def calc_stdv(full_path_theta_out, full_path_thlength_out, filtered_thetas,eq_le
         sigma_F= np.sqrt(np.average((filtered_thetas-mu_F)**2,weights=eq_lengths))
         return (sigma, sigma_F, mu, mu_F)
 
-def draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnum,specimen,savedir = None):
+def draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnum,path_index,specimen,savedir = None):
     pl.figure()
     pl.clf()
     pl.plot((full_path_xout-full_path_xout[0])*1.e6,(full_path_yout-full_path_yout[0])*1.e6,'-',
@@ -297,18 +298,18 @@ def draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnu
         pass
 
     if savedir is not None:
-        tortuosity_path_filename="path_comparison_{}_meas%3.3d.png".format(specimen) %(measnum)
-        pl.savefig(os.path.join(savedir,tortuosity_path_filename),dpi=300)
+        tortuosity_plot_filename="path_comparison_%s_meas%3.3d.%d.png" % (specimen,measnum,path_index)
+        pl.savefig(os.path.join(savedir,tortuosity_plot_filename),dpi=300)
         # Interesting quantity: sum of theta*length, for left and right
         pass
     else:
-        tortuosity_path_filename=None
+        tortuosity_plot_filename=None
         pass
-    return tortuosity_path_filename
+    return tortuosity_plot_filename
      
 
 def tortuosity_plots(
-        filenames,
+        specimen,
         theta_final,
         thlength_final,
         filtered_thetas,
@@ -316,7 +317,6 @@ def tortuosity_plots(
         avg_mu,
         avg_filtered_mu,
         avg_sigma,avg_filtered_sigma,savedir):
-  for i in range(len(filenames)):
     pl.figure()
     pl.clf()
     n_bins=50
@@ -329,7 +329,7 @@ def tortuosity_plots(
     pl.ylabel('Number of Instances',fontsize=20)
     pl.xlabel('Angle (degrees)',fontsize=20)
     if savedir is not None:
-        unfiltered_filename="{}_histogram_unfiltered.png".format(filenames[i].split('_')[2])
+        unfiltered_filename="%s_histogram_unfiltered.png" % (specimen)
         pl.savefig(os.path.join(savedir,unfiltered_filename),dpi=300)
         pass
     else:
@@ -345,7 +345,7 @@ def tortuosity_plots(
     pl.ylabel('Number of Instances',fontsize=20)
     pl.xlabel('Angle (degrees)',fontsize=20)
     if savedir is not None:
-        filtered_filename="{}_histogram_filtered.png".format(filenames[i].split('_')[2])
+        filtered_filename="%s_histogram_filtered.png" % (specimen)
         pl.savefig(os.path.join(savedir,filtered_filename),dpi=300)
         pass
     else:
@@ -360,7 +360,7 @@ def tortuosity_plots(
 
 ### Now that the functions are all defined, time to use them.
 
-def histogram_from_svgs(filenames,measnums,f_cutoff,savedir,point_spacing):
+def histogram_from_svgs(filenames,measnums,f_cutoff,specimen,savedir,point_spacing):
     all_path_xout=[]
     all_path_yout=[]
     all_theta=[]
@@ -370,6 +370,8 @@ def histogram_from_svgs(filenames,measnums,f_cutoff,savedir,point_spacing):
     all_filtered_xpath=[]
     all_filtered_ypath=[]
     tortuosity_path_filenames=[]
+    tortuosity_plot_filenames=[]
+    tortuosity_path_indexes=[]
 
     for i in range(len(filenames)):
         
@@ -386,8 +388,13 @@ def histogram_from_svgs(filenames,measnums,f_cutoff,savedir,point_spacing):
                 measnum=measnums[i]
                 pass
                 
-            tortuosity_path_filename=draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnum,filenames[i].split('/')[1][:-4],savedir)
-            tortuosity_path_filenames.append(tortuosity_path_filename)
+            #(dirpath,filename) = os.path.split(filenames[i]])
+            #(filebasename,ext) = os.path.splitext(filename)
+            #specimen=filebasename
+            tortuosity_plot_filename=draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnum,path_index,specimen,savedir)
+            tortuosity_plot_filenames.append(tortuosity_plot_filename)
+            tortuosity_path_filenames.append(filenames[i])
+            tortuosity_path_indexes.append(path_index)
             all_path_xout.append(full_path_xout[:])
             all_path_yout.append(full_path_yout[:])
             all_theta.append(full_path_theta_out[:])
@@ -413,6 +420,8 @@ def histogram_from_svgs(filenames,measnums,f_cutoff,savedir,point_spacing):
         mu_F,
         sigma,
         sigma_F,
-        tortuosity_path_filenames)
+        tortuosity_path_filenames,
+        tortuosity_plot_filenames,
+        tortuosity_path_indexes)
     pass
 
