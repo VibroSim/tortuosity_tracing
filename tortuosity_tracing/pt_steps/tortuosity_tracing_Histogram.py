@@ -1,5 +1,6 @@
 import tortuosity_tracing
 import subprocess
+import numpy as np
 
 import hashlib
 

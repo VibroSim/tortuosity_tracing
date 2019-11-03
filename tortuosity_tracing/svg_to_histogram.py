@@ -6,11 +6,21 @@ import pdb
 import glob
 import os
 
+
+def get_num_paths(filename):
+""" Return number of paths in the specified file"""
+    svgxml=etree.parse(filename)
+
+    # Find <svg:path> elements
+    path_els = svgxml.xpath("//svg:path",namespaces={"svg":"http://www.w3.org/2000/svg"})
+
+    return len(path_els)
+
 ### inputs: [svgfiles],[i] <-- "i" will be assigned in the loop that this function is made to be used for
 ### outputs: [full_path_xout],[path_theta_out],[full_path_yout],[full_path_theta_out],
 ###          [full_path_thetax_out],[full_path_thetay_out],
 ###          [full_path_thlength_out],[path_thlength_out]
-def get_thetas(filename):
+def get_thetas(filename,path_num):
     """ Read the specified .svg file, containing a single spline, 
 as input. A scaling of 1000 between physical units and .svg units 
 is assumed (i.e. 1 mm as recorded in the .svg is actually 1 micron). 
@@ -33,10 +43,10 @@ of each step and the length of each step, along with x and y coordinates.
     # Find <svg:path> elements
     path_els = svgxml.xpath("//svg:path",namespaces={"svg":"http://www.w3.org/2000/svg"})
 
-    assert(len(path_els)==1)  # Assume only one <path> in the .svg file
+    #assert(len(path_els)==1)  # Assume only one <path> in the .svg file
 
     # Extract "d=" attribute
-    d_attr=path_els[0].attrib["d"]
+    d_attr=path_els[path_num].attrib["d"]
 
     # Split d attribute by spaces and commas
     pathcmds=d_attr.replace(",",' ').split()
@@ -362,26 +372,31 @@ def histogram_from_svgs(filenames,measnums,f_cutoff,savedir,point_spacing):
     tortuosity_path_filenames=[]
 
     for i in range(len(filenames)):
-        (full_path_xout, path_theta_out, full_path_yout, full_path_theta_out, full_path_thetax_out, full_path_thetay_out, full_path_thlength_out, path_thlength_out) = get_thetas(filenames[i])
-        sampling_thetas=evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing)
-        (filtered_theta,eq_lengths,filtered_xpath,filtered_ypath)=filtering(sampling_thetas,point_spacing,f_cutoff)
-        if measnums is None:
-            measnum=None
+        
+        for path_index in range(get_num_paths(filenames[i])):
+            
+            
+            (full_path_xout, path_theta_out, full_path_yout, full_path_theta_out, full_path_thetax_out, full_path_thetay_out, full_path_thlength_out, path_thlength_out) = get_thetas(filenames[i],path_index)
+            sampling_thetas=evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing)
+            (filtered_theta,eq_lengths,filtered_xpath,filtered_ypath)=filtering(sampling_thetas,point_spacing,f_cutoff)
+            if measnums is None:
+                measnum=None
+                pass
+            else :
+                measnum=measnums[i]
+                pass
+                
+            tortuosity_path_filename=draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnum,filenames[i].split('/')[1][:-4],savedir)
+            tortuosity_path_filenames.append(tortuosity_path_filename)
+            all_path_xout.append(full_path_xout[:])
+            all_path_yout.append(full_path_yout[:])
+            all_theta.append(full_path_theta_out[:])
+            all_thlength.append(full_path_thlength_out[:])
+            all_filtered_theta.append(filtered_theta[:])
+            all_eq_lengths.append(eq_lengths[:])
+            all_filtered_xpath.append(filtered_xpath[:])
+            all_filtered_ypath.append(filtered_ypath[:])
             pass
-        else :
-            measnum=measnums[i]
-            pass
-
-        tortuosity_path_filename=draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnum,filenames[i].split('/')[1][:-4],savedir)
-        tortuosity_path_filenames.append(tortuosity_path_filename)
-        all_path_xout.append(full_path_xout[:])
-        all_path_yout.append(full_path_yout[:])
-        all_theta.append(full_path_theta_out[:])
-        all_thlength.append(full_path_thlength_out[:])
-        all_filtered_theta.append(filtered_theta[:])
-        all_eq_lengths.append(eq_lengths[:])
-        all_filtered_xpath.append(filtered_xpath[:])
-        all_filtered_ypath.append(filtered_ypath[:])
         pass
     theta_final=np.concatenate(all_theta)
     thlength_final=np.concatenate(all_thlength)
