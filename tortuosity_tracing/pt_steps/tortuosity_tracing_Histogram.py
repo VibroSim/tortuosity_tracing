@@ -59,13 +59,13 @@ def run(_xmldoc,_element,fcutoff_numericunits,point_spacing_numericunits=dc_valu
     unfiltered_href = dc_value.hrefvalue(unfiltered_filename,contexthref=dest_href)
     filtered_href = dc_value.hrefvalue(filtered_filename,contexthref=dest_href)
     retval = [ ("dc:filtered_mu", dc_value.numericunitsvalue(mu_F,"radians")),
-             ("dc:filtered_sigma", dc_value.numericunitsvalue(sigma_F,"radians")),
-             ("dc:unfiltered_plot", unfiltered_href),
-             ("dc:filtered_plot", filtered_href),
-             ("dc:Full_clicked_length",dc_value.numericunitsvalue(summed_clicked_length,"meters"),
-             ("dc:Full_eq_length",dc_value.numericunitsvalue(summed_eq_length,"meters")
-        ]
-
+               ("dc:filtered_sigma", dc_value.numericunitsvalue(sigma_F,"radians")),
+               ("dc:unfiltered_plot", unfiltered_href),
+               ("dc:filtered_plot", filtered_href),
+               ("dc:Full_clicked_length",dc_value.numericunitsvalue(summed_clicked_length,"meters")),
+               ("dc:Full_eq_length",dc_value.numericunitsvalue(summed_eq_length,"meters"))
+           ]
+    
     print("The length of the crack path based on the point clicks is {} m".format(summed_clicked_length))
     print("The length of the crack path based on the evenly spaced points is {} m".format(summed_eq_length))
     print("Check that these to numbers are consitent with each other and greater than the crack length in the specimen database.")
