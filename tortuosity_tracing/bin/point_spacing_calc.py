@@ -13,15 +13,16 @@ def main(args=None):
         args=sys.argv
         pass
         
-    if len(args) < 3:
-        print("Usage: point_spacing_calc <fcutoff_in_1/m> <svg_file.svg> ...")
+    if len(args) < 4:
+        print("Usage: point_spacing_calc <fcutoff_in_1/m> <specimen> <svg_file.svg> ...")
         print("Creates tortuosity histograms from the given .svg files.")
         print("point_spacing is hard wired to 0.1 micron")
         sys.exit(0)
         pass
         
     fcutoff=float(args[1])
-    svg_files=args[2:]
+    specimen=str(args[2])
+    svg_files=args[3:]
     point_spacing=0.1e-6
     
 
@@ -33,12 +34,14 @@ def main(args=None):
      mu_F,
      sigma,
      sigma_F,
-     tortuosity_path_filenames) = histogram_from_svgs(svg_files,None,fcutoff,None,point_spacing)
+     tortuosity_path_filenames,
+     tortuosity_plot_filenames,
+     tortuosity_path_indexes) = histogram_from_svgs(svg_files,None,fcutoff,specimen,None,point_spacing)
 
     mean=np.mean(thlength_final)
     StDv=np.std(thlength_final)
     #print(mean,StDv)
-    fig = pl.figure(str(svg_files))
+    fig = pl.figure(str(specimen))
     pl.clf()
     #svg_to_histogram.py [49] divides spaces between clicks into 20 steps
     #So, to get distance between point clicks, we need to multiply back
