@@ -1,5 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as pl
+import scipy
+from scipy import special
 import sys
 from lxml import etree
 import pdb
@@ -250,19 +252,46 @@ def filtering(sampling_thetas,point_spacing,f_cutoff):
     xf = np.arange(N_samp,dtype='d')/N_samp/point_spacing
     xf[N_samp//2:] -= 1.0/point_spacing # symmetric about 0    
     ### Apply raised cosine/hanning window
-    f_filter_region = (xf > -f_cutoff) & (xf < f_cutoff) #recall: f_cutoff specified by user
-    raised_cos=np.cos((np.pi/4.0)*(2.0/f_cutoff)*xf[f_filter_region])**2.0
-    #creates raised cosine with slope inflection point at f_cutoff/2.0
-    yf[f_filter_region]=yf[f_filter_region]*raised_cos
+    f_filter_region=(xf > -f_cutoff) & (xf < f_cutoff)
+    f_filter_region1 =(xf > -f_cutoff) & (xf < -f_cutoff/10)
+    f_filter_region2 =(xf > -f_cutoff/10) & (xf < f_cutoff/10)
+    f_filter_region3 =(xf > f_cutoff/10) & (xf < f_cutoff)
+    ###http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.578.3460&rep=rep1&type=pdf
+    ###This cannot be used because of singularities at the boundaries
+    xsi=xf[f_filter_region3][0]
+    omega=(f_cutoff-xsi)/2
+    ugly_plus=(xf[f_filter_region1]+xsi+omega)/omega
+    ugly_minus=-(xf[f_filter_region3]-xsi-omega)/omega
+    func_plus=2*ugly_plus/(np.sqrt(1-ugly_plus**2))
+    func_minus=2*ugly_minus/(np.sqrt(1-ugly_minus**2))
+    smooth1=.5*(1+scipy.special.erf(func_plus))
+    smooth2=.5*(1+scipy.special.erf(func_minus))
+    flat=np.ones(len(xf[f_filter_region2]))
+    total_filter=np.concatenate((smooth1,flat,smooth2))
+    #yf = np.fft.fft(sampling_thetas)
+    ##assert((np.linalg.norm(yf,2)/np.linalg.norm(yf.real,2))-1 <= 1.0)
+    #xf = np.arange(N_samp,dtype='d')/N_samp/point_spacing
+    #xf[N_samp//2:] -= 1.0/point_spacing # symmetric about 0    
+    #### Apply raised cosine/hanning window
+    #f_filter_region = (xf > -f_cutoff) & (xf < f_cutoff) #recall: f_cutoff specified by user
+    #raised_cos=np.cos((np.pi/4.0)*(2.0/f_cutoff)*xf[f_filter_region])**2.0
+    ##creates raised cosine with slope inflection point at f_cutoff/2.0
+    yf[f_filter_region]=yf[f_filter_region]*(-total_filter[:]+1)
     yf[~f_filter_region]=0.0
-    #assert((np.linalg.norm(yf,2)/np.linalg.norm(yf.real,2))-1 <= 1.0)
-    #This assertion compares the 2-norm of complex yf with real yf
-    #this ensures that the complex part is never larger than the real
-    filtered_thetas=np.real(np.fft.ifft(yf)) #can be done because of assertion
-    assert((np.linalg.norm(filtered_thetas.imag,2)/np.linalg.norm(filtered_thetas,2)) <= 1.0e-8)
-    eq_lengths=np.ones(filtered_thetas.shape[0])*point_spacing
-    filtered_ypath=np.cumsum(np.sin(filtered_thetas))*point_spacing
-    filtered_xpath=np.cumsum(np.cos(filtered_thetas))*point_spacing
+    ##assert((np.linalg.norm(yf,2)/np.linalg.norm(yf.real,2))-1 <= 1.0)
+    ##This assertion compares the 2-norm of complex yf with real yf
+    ##this ensures that the complex part is never larger than the real
+    pl.plot(xf,yf,xf[f_filter_region],(-total_filter[:]+1))
+    pl.plot((-total_filter[:]+1))
+    #filtered_thetas=np.real(np.fft.ifft(yf)) #can be done because of assertion
+    #assert((np.linalg.norm(filtered_thetas.imag,2)/np.linalg.norm(filtered_thetas,2)) <= 1.0e-8)
+    #eq_lengths=np.ones(filtered_thetas.shape[0])*point_spacing
+    #filtered_ypath=np.cumsum(np.sin(filtered_thetas))*point_spacing
+    #filtered_xpath=np.cumsum(np.cos(filtered_thetas))*point_spacing
+    #pl.plot(xf,yf,xf[f_filter_region],total_filter)
+    #pl.plot(total_filter)
+    pl.show()
+    pdb.set_trace()
     return (filtered_thetas,eq_lengths,filtered_xpath,filtered_ypath)
 
 
