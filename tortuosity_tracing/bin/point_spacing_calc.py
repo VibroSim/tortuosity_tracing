@@ -38,8 +38,8 @@ def main(args=None):
      tortuosity_plot_filenames,
      tortuosity_path_indexes) = histogram_from_svgs(svg_files,None,fcutoff,specimen,None,point_spacing)
 
-    mean=np.mean(thlength_final)
-    StDv=np.std(thlength_final)
+    mean=np.mean(thlength_final)*20*10**6
+    StDv=np.std(thlength_final)*20*10**6
     #print(mean,StDv)
     fig = pl.figure(str(specimen))
     pl.clf()
@@ -48,7 +48,7 @@ def main(args=None):
     (N,B,P)=pl.hist(thlength_final*20*10**6,bins=50)
     pl.title('Point Click Spacing',fontsize=30)
     pl.xlabel('Lengths [um]',fontsize=20)
-    pl.figtext(0.55,0.75,('mu={}um\nsigma={}um'.format(round(mean*20*10**6,4),round(StDv*20*10**6,4))),bbox={'facecolor':'white','alpha':0.8,'pad':10},fontsize=25)
+    pl.figtext(0.55,0.75,('mu={}um\nsigma={}um'.format(round(mean,4),round(StDv,4))),bbox={'facecolor':'white','alpha':0.8,'pad':10},fontsize=25)
 
 
     pl.show()
