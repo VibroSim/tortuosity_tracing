@@ -16,7 +16,9 @@ from limatix.dc_value import hrefvalue as hrefv
 from limatix.dc_value import numericunitsvalue as numericunitsv
 from limatix.xmldoc import xmldoc
 
-def run(_xmldoc,_element,dc_summarytable_href):
+def run(_xmldoc,_element,
+        dc_summarytable_href,
+        dc_statsdir_href=hrefv("multiple_specimen_stats/",".")):
     #xls_file = ("./tortuosity_statistics.xls")
     #outputfile =_xmldoc.xpathcontext(_element,"/prx:inputfiles/dc:summaryspreadsheet")
     #xls_file = xmldoc.loadhref(hrefv.fromxml(_xmldoc,outputfile)) #grabs the .xlp href from the outputfile
@@ -39,14 +41,14 @@ def run(_xmldoc,_element,dc_summarytable_href):
     mean_bins=np.linspace(np.min(means),np.max(means),n_bins)
     stddv_bins=np.linspace(np.min(stddvs),np.max(stddvs),n_bins)
     
-    tort_hist_href=hrefv("multiple_specimen_stats/tortuosity_histogram.png",".")
-    mean_hist_href=hrefv("multiple_specimen_stats/means_histogram.png",".")
-    stddv_hist_href=hrefv("multiple_specimen_stats/stddvs_histogram.png",".")
-    tort_distribution_href=hrefv("multiple_specimen_stats/tortuosity_distribution.png",".")
-    mean_distribution_href=hrefv("multiple_specimen_stats/means_distribution.png",".")
-    stddv_distribution_href=hrefv("multiple_specimen_stats/stddvs_distribution.png",'.')
-    inv_mean_vs_tort_href=hrefv("multiple_specimen_stats/inv_means_vs_tortuosity.png",'.')
-    stddv_over_mean_href=hrefv("multiple_specimen_stats/stddvs_over_means_distribution.png",'.')
+    tort_hist_href=hrefv("tortuosity_histogram.png",dc_statsdir_href)
+    mean_hist_href=hrefv("means_histogram.png",dc_statsdir_href)
+    stddv_hist_href=hrefv("stddvs_histogram.png",dc_statsdir_href)
+    tort_distribution_href=hrefv("tortuosity_distribution.png",dc_statsdir_href)
+    mean_distribution_href=hrefv("means_distribution.png",dc_statsdir_href)
+    stddv_distribution_href=hrefv("stddvs_distribution.png",dc_statsdir_href)
+    inv_mean_vs_tort_href=hrefv("inv_means_vs_tortuosity.png",dc_statsdir_href)
+    stddv_over_mean_href=hrefv("stddvs_over_means_distribution.png",dc_statsdir_href)
     
     ### Build the Histograms
     pl.figure()
