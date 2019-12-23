@@ -17,9 +17,11 @@ from limatix.xmldoc import xmldoc
 
 def run(_xmldoc,_element):
   
-  spreadsheetoutput_href = hrefv("tortuosity_statistics.xls",_xmldoc.getcontexthref())
-  spreadsheetoutput_writer = pd.ExcelWriter(spreadsheetoutput_href.getpath())
+  #spreadsheetoutput_href = hrefv("tortuosity_statistics.xls",_xmldoc.getcontexthref())
+  #spreadsheetoutput_writer = pd.ExcelWriter(spreadsheetoutput_href.getpath())
 
+  csvoutput_href = hrefv("tortuosity_statistics.csv",_xmldoc.getcontexthref())
+  
   outputfiles = _xmldoc.xpathcontext(_element,"/prx:inputfiles/prx:inputfile/prx:outputfile")#all outputfiles in .pro (they hold the .xlp hrefs)
 
   tortuosity_table = pd.DataFrame(columns=["Specimen","Tortuosity Standard Deviation (deg)","Mean Point-Click Spacing (um)","Standard Deviation of Point-Click Spacing (um)"])
@@ -33,9 +35,24 @@ def run(_xmldoc,_element):
     crack = outputdoc.xpath("/dc:experiment") #look at the experiment log of each .xlp
 
     specimen=outputdoc.xpathsinglecontextstr(crack,"dc:summary/dc:specimen",default="UNKNOWN")
-    tortuosity = outputdoc.xpathsinglecontextfloat(crack,"dc:filtered_sigma",default=np.nan)
-    pointspacing_mean=outputdoc.xpathsinglecontextfloat(crack,"dc:Mean_spacing",default=np.nan)
-    pointspacing_stddv=outputdoc.xpathsinglecontextfloat(crack,"dc:StdDv_spacing",default=np.nan)
+    tortuosity = np.nan
+    tortuosity_el = outputdoc.xpathsinglecontext(crack,"dc:filtered_sigma",default=None)
+    if tortuosity_el is not None:
+      tortuosity = numericunitsv.fromxml(outputdoc,tortuosity_el).value("radians")
+      pass
+
+    pointspacing_mean=np.nan
+    pointspacing_mean_el=outputdoc.xpathsinglecontext(crack,"dc:Mean_spacing",default=None)
+    if pointspacing_mean_el is not None:
+      pointspacing_mean = numericunitsv.fromxml(outputdoc,pointspacing_mean_el).value("m")
+      pass
+
+    pointspacing_stddv=np.nan
+    pointspacing_stddv_el=outputdoc.xpathsinglecontext(crack,"dc:StdDv_spacing",default=None)
+    if pointspacing_stddv_el is not None:
+      pointspacing_stddv = numericunitsv.fromxml(outputdoc,pointspacing_stddv_el).value("m")      
+      pass
+
     spatial_freq=1.0/pointspacing_mean
 
     spat_freqs.append(spatial_freq)
@@ -44,11 +61,11 @@ def run(_xmldoc,_element):
     pointspacing_means.append(pointspacing_mean)
     pointspacing_stddvs.append(pointspacing_stddv)
     tortuosity_table = tortuosity_table.append({"Specimen": specimen,
-                                              "Tortuosity Standard Deviation (deg)": tortuosity*180.0/np.pi,
-                                              "Mean Point-Click Spacing (um)": pointspacing_mean,
-                                              "Spatial Frequency (um^-1)": spatial_freq,
-                                              "Standard Deviation of Point-Click Spacing (um)": pointspacing_stddv},ignore_index=True)
-
+                                                "Tortuosity Standard Deviation (deg)": tortuosity*180.0/np.pi,
+                                                "Mean Point-Click Spacing (um)": pointspacing_mean*1e6,
+                                                "Point Spacing Frequency (um^-1)": spatial_freq/1e6,
+                                                "Standard Deviation of Point-Click Spacing (um)": pointspacing_stddv*1e6},ignore_index=True)
+    
 
     pass
   '''
@@ -83,11 +100,12 @@ def run(_xmldoc,_element):
   pl.ylabel('Standard Deviataions of Lengths [um]')
 
   pl.show()'''
-  tortuosity_table.to_excel(spreadsheetoutput_writer,sheet_name="Tortuosities",float_format="%.2f")
+  #tortuosity_table.to_excel(spreadsheetoutput_writer,sheet_name="Tortuosities",float_format="%.2f")
   
-  spreadsheetoutput_writer.close()
+  #spreadsheetoutput_writer.close()
+  tortuosity_table.to_csv(csvoutput_href.getpath())
+  print ('Done!\nThe statistics are saved in \"%s\".' % (csvoutput_href.getpath())
   return { 
-    "dc:summaryspreadsheet": spreadsheetoutput_href,
+    "dc:summarytable": csvoutput_href,
   }  
-  print ('Done!\nThe statistics are saved in "tortuosity_statistics.xls".')
-  pass
+
