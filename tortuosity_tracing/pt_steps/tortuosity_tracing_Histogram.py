@@ -1,6 +1,7 @@
 import tortuosity_tracing
 import subprocess
 import numpy as np
+from matplotlib import pyplot as pl
 
 import hashlib
 
@@ -50,7 +51,8 @@ def run(_xmldoc,_element,fcutoff_numericunits,dc_specimen_str=None,point_spacing
      sigma_F,
      tortuosity_path_filenames,
      tortuosity_plot_filenames,
-     tortuosity_path_indexes) = tortuosity_tracing.histogram_from_svgs(svg_filenames,svg_measnums,fcutoff,dc_specimen_str,dest_href.getpath(),point_spacing_numericunits.value(units="m"))
+     tortuosity_path_indexes,
+     num_steps) = tortuosity_tracing.histogram_from_svgs(svg_filenames,svg_measnums,fcutoff,dc_specimen_str,dest_href.getpath(),point_spacing_numericunits.value(units="m"))
     
 
 
@@ -69,17 +71,16 @@ def run(_xmldoc,_element,fcutoff_numericunits,dc_specimen_str=None,point_spacing
         sigma,
         sigma_F,dest_href.getpath())
     
-    mean=np.mean(thlength_final)*20.0
-    StDv=np.std(thlength_final)*20.0
-    #print(mean,StDv)
+    mean=np.mean(thlength_final)*num_steps
+    StdDv=np.std(thlength_final)*num_steps
     fig = pl.figure(str(svg_filenames[0]))
     pl.clf()
     #svg_to_histogram.py [49] divides spaces between clicks into 20 steps
     #So, to get distance between point clicks, we need to multiply back
-    (N,B,P)=pl.hist(thlength_final*20*10**6,bins=50)
+    (N,B,P)=pl.hist(thlength_final*num_steps*10**6,bins=50)
     pl.title('Point Click Spacing',fontsize=30)
     pl.xlabel('Lengths [um]',fontsize=20)
-    pl.figtext(0.55,0.75,('mu={}um\nsigma={}um'.format(round(mean*10**6,4),round(StDv*10**6,4))),bbox={'facecolor':'white','alpha':0.8,'pad':10},fontsize=25)
+    pl.figtext(0.55,0.75,('mu={}um\nsigma={}um'.format(round(mean*1e6,4),round(StdDv*1e6,4))),bbox={'facecolor':'white','alpha':0.8,'pad':10},fontsize=25)
     unfiltered_href = dc_value.hrefvalue(unfiltered_filename,contexthref=dest_href)
     filtered_href = dc_value.hrefvalue(filtered_filename,contexthref=dest_href)
     retval = [ ("dc:filtered_mu", dc_value.numericunitsvalue(mu_F,"radians")),
@@ -88,8 +89,8 @@ def run(_xmldoc,_element,fcutoff_numericunits,dc_specimen_str=None,point_spacing
                ("dc:filtered_plot", filtered_href),
                ("dc:Full_clicked_length",dc_value.numericunitsvalue(summed_clicked_length,"meters")),
                ("dc:Full_eq_length",dc_value.numericunitsvalue(summed_eq_length,"meters")),
-               ("dc:Mean_spacing",dc_value.numericunitsvalue(mean,"meters")),
-               ("dc:StDv_spacing",dc_value.numericunitsvalue(StDv,"meters"))
+               ("dc:Mean_spacing",dc_value.numericunitsvalue(mean,"m")),
+               ("dc:StdDv_spacing",dc_value.numericunitsvalue(StdDv,"m"))
            ]
     
     print("The length of the crack path based on the point clicks is {} m".format(summed_clicked_length))

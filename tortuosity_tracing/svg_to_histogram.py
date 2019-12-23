@@ -42,6 +42,7 @@ of each step and the length of each step, along with x and y coordinates.
     [full_path_thetay_out], concatenated array of y coordinates of the steps center positions (meters)
     [full_path_thlength_out], concatenated array of lengths of each step (meters)
     [path_thlength_out], list of arrays of step lengths for each segment (meters)
+    [num_steps], number of steps each segment was broken into
           """
     svgxml=etree.parse(filename)
 
@@ -184,7 +185,7 @@ of each step and the length of each step, along with x and y coordinates.
     full_path_thetay_out=np.concatenate(path_thetay_out)*1e-6 # 10**-6 converts from mm-based SVG with assumed 1000x scale to meters
     full_path_thlength_out=np.concatenate(path_thlength_out)
     path_thlength_out=np.array(path_thlength_out, dtype= 'd')
-    return (full_path_xout,path_theta_out,full_path_yout,full_path_theta_out, full_path_thetax_out, full_path_thetay_out, full_path_thlength_out, path_thlength_out)
+    return (full_path_xout,path_theta_out,full_path_yout,full_path_theta_out, full_path_thetax_out, full_path_thetay_out, full_path_thlength_out, path_thlength_out,num_steps)
     pass
 
 ######################## funtion 2 ########################
@@ -391,7 +392,7 @@ def histogram_from_svgs(filenames,measnums,f_cutoff,specimen,savedir,point_spaci
         for path_index in range(get_num_paths(filenames[i])):
             
             
-            (full_path_xout, path_theta_out, full_path_yout, full_path_theta_out, full_path_thetax_out, full_path_thetay_out, full_path_thlength_out, path_thlength_out) = get_thetas(filenames[i],path_index)
+            (full_path_xout, path_theta_out, full_path_yout, full_path_theta_out, full_path_thetax_out, full_path_thetay_out, full_path_thlength_out, path_thlength_out,num_steps) = get_thetas(filenames[i],path_index)
             sampling_thetas=evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing)
             (filtered_theta,eq_lengths,filtered_xpath,filtered_ypath)=filtering(sampling_thetas,point_spacing,f_cutoff)
             if measnums is None:
@@ -435,6 +436,7 @@ def histogram_from_svgs(filenames,measnums,f_cutoff,specimen,savedir,point_spaci
         sigma_F,
         tortuosity_path_filenames,
         tortuosity_plot_filenames,
-        tortuosity_path_indexes)
+        tortuosity_path_indexes,
+        num_steps)
     pass
 

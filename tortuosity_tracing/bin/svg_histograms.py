@@ -36,7 +36,7 @@ def main(args=None):
      sigma_F,
      tortuosity_path_filenames,
      tortuosity_plot_filenames,
-     tortuosity_path_indexes) = histogram_from_svgs(svg_files,None,fcutoff,specimen,None,point_spacing)
+     tortuosity_path_indexes,num_steps) = histogram_from_svgs(svg_files,None,fcutoff,specimen,None,point_spacing)
     
     (unfiltered_filename,filtered_filename) = tortuosity_plots(
         specimen,

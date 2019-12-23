@@ -36,19 +36,20 @@ def main(args=None):
      sigma_F,
      tortuosity_path_filenames,
      tortuosity_plot_filenames,
-     tortuosity_path_indexes) = histogram_from_svgs(svg_files,None,fcutoff,specimen,None,point_spacing)
+     tortuosity_path_indexes,
+     num_steps) = histogram_from_svgs(svg_files,None,fcutoff,specimen,None,point_spacing)
 
-    mean=np.mean(thlength_final)*20*10**6
-    StDv=np.std(thlength_final)*20*10**6
+    mean=np.mean(thlength_final)*num_steps
+    StDv=np.std(thlength_final)*num_steps
     #print(mean,StDv)
     fig = pl.figure(str(specimen))
     pl.clf()
     #svg_to_histogram.py [49] divides spaces between clicks into 20 steps
     #So, to get distance between point clicks, we need to multiply back
-    (N,B,P)=pl.hist(thlength_final*20*10**6,bins=50)
+    (N,B,P)=pl.hist(thlength_final*num_steps*1e6,bins=50)
     pl.title('Point Click Spacing',fontsize=30)
     pl.xlabel('Lengths [um]',fontsize=20)
-    pl.figtext(0.55,0.75,('mu={}um\nsigma={}um'.format(round(mean,4),round(StDv,4))),bbox={'facecolor':'white','alpha':0.8,'pad':10},fontsize=25)
+    pl.figtext(0.55,0.75,('mu={}um\nsigma={}um'.format(round(mean,4)*1e6,round(StDv*1e6,4))),bbox={'facecolor':'white','alpha':0.8,'pad':10},fontsize=25)
 
 
     pl.show()
