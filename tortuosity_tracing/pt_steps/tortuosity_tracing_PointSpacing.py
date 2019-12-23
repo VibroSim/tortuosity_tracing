@@ -1,78 +1,93 @@
-import tortuosity_tracing
-import subprocess
+### Code adapted from
+### "process_crack.prx"
+import sys
+import os 
+import os.path
 import numpy as np
-from matplotlib import pyplot as pl
-import hashlib
-import csv
+#import cycler
+import itertools
+import pandas as pd
+import matplotlib.pyplot as pl
 
-from limatix import dc_value
+import pdb
 
-def run(_xmldoc,_element,fcutoff_numericunits,dc_specimen_str=None,point_spacing_numericunits=dc_value.numericunitsvalue(1.0e-7,"m")):
+from limatix.dc_value import hrefvalue as hrefv
+from limatix.dc_value import numericunitsvalue as numericunitsv
+from limatix.xmldoc import xmldoc
 
-    if dc_specimen_str is None:
-        dc_specimen = _xmldoc.xpathsingle("dc:summary/dc:specimen")
-        dc_specimen_str = _xmldoc.xpathsinglecontextstr(dc_specimen,"string(.)")
-        pass
+def run(_xmldoc,_element):
+  
+  spreadsheetoutput_href = hrefv("tortuosity_statistics.xls",_xmldoc.getcontexthref())
+  spreadsheetoutput_writer = pd.ExcelWriter(spreadsheetoutput_href.getpath())
 
-    #meastags = _xmldoc.xpath("dc:measurement[dc:traced_svg]")
-    meastags = _xmldoc.xpath("dc:measurement")
-    svg_measnums = []
-    svg_filenames=[]
+  outputfiles = _xmldoc.xpathcontext(_element,"/prx:inputfiles/prx:inputfile/prx:outputfile")#all outputfiles in .pro (they hold the .xlp hrefs)
 
-    fcutoff=fcutoff_numericunits.value(units="m^-1")
+  tortuosity_table = pd.DataFrame(columns=["Specimen","Tortuosity Standard Deviation (deg)","Mean Point-Click Spacing (um)","Standard Deviation of Point-Click Spacing (um)"])
+  specimens=[]
+  tortuosities=[]
+  pointspacing_means=[]
+  pointspacing_stddvs=[]
+  spat_freqs=[]
+  for outputfile in outputfiles:
+    outputdoc = xmldoc.loadhref(hrefv.fromxml(_xmldoc,outputfile)) #grabs the .xlp href from the outputfile
+    crack = outputdoc.xpath("/dc:experiment") #look at the experiment log of each .xlp
 
-    for meastag in meastags:
+    specimen=outputdoc.xpathsinglecontextstr(crack,"dc:summary/dc:specimen",default="UNKNOWN")
+    tortuosity = outputdoc.xpathsinglecontextfloat(crack,"dc:filtered_sigma",default=np.nan)
+    pointspacing_mean=outputdoc.xpathsinglecontextfloat(crack,"dc:Mean_spacing",default=np.nan)
+    pointspacing_stddv=outputdoc.xpathsinglecontextfloat(crack,"dc:StdDv_spacing",default=np.nan)
+    spatial_freq=1.0/pointspacing_mean
 
-        svgfile = _xmldoc.xpathsinglecontext(meastag,"dc:tortuositysvg")
-        svg_href = dc_value.hrefvalue.fromxml(_xmldoc,svgfile)
-        
-        svg_filename = svg_href.getpath()
+    spat_freqs.append(spatial_freq)
+    specimens.append(specimen)
+    tortuosities.append(tortuosity*180.0/np.pi)
+    pointspacing_means.append(pointspacing_mean)
+    pointspacing_stddvs.append(pointspacing_stddv)
+    tortuosity_table = tortuosity_table.append({"Specimen": specimen,
+                                              "Tortuosity Standard Deviation (deg)": tortuosity*180.0/np.pi,
+                                              "Mean Point-Click Spacing (um)": pointspacing_mean,
+                                              "Spatial Frequency (um^-1)": spatial_freq,
+                                              "Standard Deviation of Point-Click Spacing (um)": pointspacing_stddv},ignore_index=True)
 
-        svg_measnum = int(_xmldoc.xpathsinglecontext(meastag,"string(dc:measnum)"))
 
-        svg_filenames.append(svg_filename)
-        svg_measnums.append(svg_measnum)
-
-        pass
-
-    dest_el = _xmldoc.xpathsingle("dc:summary/dc:dest")
-    dest_href = dc_value.hrefvalue.fromxml(_xmldoc,dest_el)
-
-    (theta_final,
-     thlength_final,
-     filtered_theta_final,
-     eq_lengths_final,
-     mu,
-     mu_F,
-     sigma,
-     sigma_F,
-     tortuosity_path_filenames,
-     tortuosity_plot_filenames,
-     tortuosity_path_indexes) = tortuosity_tracing.histogram_from_svgs(svg_filenames,svg_measnums,fcutoff,dc_specimen_str,dest_href.getpath(),point_spacing_numericunits.value(units="m"))
-
-    mean=np.mean(thlength_final)*20*10**6
-    StDv=np.std(thlength_final)*20*10**6
-    #print(mean,StDv)
-    fig = pl.figure(str(dc_specimen))
-    pl.clf()
-    #svg_to_histogram.py [line 49] divides spaces between clicks into 20 steps
-    #So, to get distance between point clicks, we need to multiply back
-    (N,B,P)=pl.hist(thlength_final*20*10**6,bins=50)
-    pl.title('Point Click Spacing',fontsize=30)
-    pl.xlabel('Lengths [um]',fontsize=20)
-    pl.figtext(0.55,0.75,('mu={}um\nsigma={}um'.format(round(mean*10**6,4),round(StDv*10**6,4))),bbox={'facecolor':'white','alpha':0.8,'pad':10},fontsize=25)
-    retval = [ ("dc:Mean_spacing",dc_value.numericunitsvalue(mean,"microns")),
-               ("dc:StDv_spacing",dc_value.numericunitsvalue(StDv,"microns"))
-           ]
-    for filecnt  in range(len(tortuosity_plot_filenames)):
-        tortuosity_plot_filename = tortuosity_plot_filenames[filecnt]
-        retval.append((("dc:path_comparison", { "measnum" : str(svg_measnums[filecnt]) }), dc_value.hrefvalue(tortuosity_plot_filename,contexthref=dest_href)))
-        pass
-    pl.show()
-#    with open('./tortuosity_processed_output/tortuosity_statistics.csv', mode='w') as stats_file:
-#        stats_writer = csv.writer(stats_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-#
-#        stats_writer.writerow([dc_specimen, mean, StDv])
-#        pass
-    return retval
     pass
+  '''
+  markers=['o','v','^','<','>','s','p','+','x','D']
+  colors=['b','g','r','c','m','y','k']
+  all_markers=itertools.cycle(markers)
+  all_colors=itertools.cycle(colors)
+  all_torts = zip(specimens, tortuosities, all_markers, all_colors)
+  all_stddvs = zip(specimens, pointspacing_stddvs, all_markers, all_colors)
+  all_avgs = zip(specimens, pointspacing_means, all_markers, all_colors)
+
+
+  fig_tort, ax0 =pl.subplots()
+  for spec, tort, mark, color in all_torts:
+    pl.plot(tort,linestyle='',color=color, marker=mark)
+    pass
+  pl.legend(specimens,prop={'size': 10})
+  pl.ylabel('Standard Deviations of Tortuosities [degrees]')
+
+  fig_avg, ax0 =pl.subplots()
+  for spec, avgs, mark, color in all_avgs:
+    pl.plot(avgs,linestyle='',color=color, marker=mark)
+    pass
+  pl.legend(specimens,prop={'size': 10})
+  pl.ylabel('Average Lengths [um]')
+
+  fig_stddv, ax0 =pl.subplots()
+  for spec, stddev, mark, color in all_stddvs:
+    pl.plot(stddev,linestyle='',color=color, marker=mark)
+    pass
+  pl.legend(specimens,prop={'size': 10})
+  pl.ylabel('Standard Deviataions of Lengths [um]')
+
+  pl.show()'''
+  tortuosity_table.to_excel(spreadsheetoutput_writer,sheet_name="Tortuosities",float_format="%.2f")
+  
+  spreadsheetoutput_writer.close()
+  return { 
+    "dc:summaryspreadsheet": spreadsheetoutput_href,
+  }  
+  print ('Done!\nThe statistics are saved in "tortuosity_statistics.xls".')
+  pass
