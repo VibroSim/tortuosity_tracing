@@ -15,12 +15,13 @@ from limatix.dc_value import hrefvalue as hrefv
 from limatix.dc_value import numericunitsvalue as numericunitsv
 from limatix.xmldoc import xmldoc
 
-def run(_xmldoc,_element):
+def run(_xmldoc,_element,        
+        dc_statsdir_href=hrefv("multiple_specimen_stats/",".")):
   
   #spreadsheetoutput_href = hrefv("tortuosity_statistics.xls",_xmldoc.getcontexthref())
   #spreadsheetoutput_writer = pd.ExcelWriter(spreadsheetoutput_href.getpath())
 
-  csvoutput_href = hrefv("tortuosity_statistics.csv",_xmldoc.getcontexthref())
+  csvoutput_href = hrefv("tortuosity_statistics.csv",dc_statsdir_href)
   
   outputfiles = _xmldoc.xpathcontext(_element,"/prx:inputfiles/prx:inputfile/prx:outputfile")#all outputfiles in .pro (they hold the .xlp hrefs)
 
