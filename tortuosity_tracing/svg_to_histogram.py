@@ -62,14 +62,14 @@ of each step and the length of each step, along with x and y coordinates.
     pathpos = 0  # index into pathcmds
 
     # Here is where we want to over sample and choose the value that is closest to the t that we want
-    numsteps = 20 # number of steps through each curve segment
-    seg_t=np.linspace(0.0,1.0,numsteps) # Times for coordinate evaluation within each segment
-    seg_dt = 1.0/(numsteps-1.0)
+    num_steps = 20 # number of steps through each curve segment
+    seg_t=np.linspace(0.0,1.0,num_steps) # Times for coordinate evaluation within each segment
+    seg_dt = 1.0/(num_steps-1.0)
 
     seg_deriv_t=seg_t[:-1]+seg_dt/2.0 # Times for derivative evaluation -- evaluate at centers of each segment
 
     seg_tsteps = [ 0.0 ]
-    seg_tsteps.extend([ seg_dt ]*(numsteps-1))
+    seg_tsteps.extend([ seg_dt ]*(num_steps-1))
     seg_tsteps=np.array(seg_tsteps,dtype='d')
     # seg_tsteps is now [ 0.0, seg_dt, seg_dt, seg_dt ... ]
 
@@ -134,7 +134,7 @@ of each step and the length of each step, along with x and y coordinates.
                     pass
 
 
-                #for tcnt in range(numsteps):
+                #for tcnt in range(num_steps):
                 xpos = ((1.0-seg_t)**3.0)*curpos[0] + (3.0*seg_t*(1-seg_t)**2.0)*x1 + (3.0*(seg_t**2.0)*(1-seg_t))*x2 + ((seg_t)**3.0)*x;
                 ypos = ((1.0-seg_t)**3.0)*curpos[1] + (3.0*seg_t*(1-seg_t)**2.0)*y1 + (3.0*(seg_t**2.0)*(1-seg_t))*y2 + ((seg_t)**3.0)*y;
 

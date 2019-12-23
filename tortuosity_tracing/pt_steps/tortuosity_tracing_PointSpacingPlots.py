@@ -25,13 +25,13 @@ def run(_xmldoc,_element,
     #xls_file = outputdoc.xpath("/dc:summaryspreadsheet") #look at the experiment log of each .xlp
 
 
-    summarytable = pd.read_csv(dc_summarytable_ref.getpath())
+    summarytable = pd.read_csv(dc_summarytable_href.getpath())
 
     specimens=np.array(summarytable["Specimen"])
     tortuosities = np.array(summarytable["Tortuosity Standard Deviation (deg)"],dtype='d')*np.pi/180.0 # tortuosity in radians
     means = np.array(summarytable["Mean Point-Click Spacing (um)"],dtype='d')/1e6 # spacing in meters
     spat_freqs = np.array(summarytable["Point Spacing Frequency (um^-1)"],dtype='d')*1e6 # Point spacing spatial frequency in meters^-1
-    stddvs = np.array(summarytable["Standard Deviation of Point-Click Spacing (um)"],dtype='d')/1e6) # stddvs in meters 
+    stddvs = np.array(summarytable["Standard Deviation of Point-Click Spacing (um)"],dtype='d')/1e6 # stddvs in meters 
 
     coefficients=np.polyfit(spat_freqs,tortuosities,1)
     freq_tort_func=np.poly1d(coefficients)
@@ -40,6 +40,10 @@ def run(_xmldoc,_element,
     tort_bins=np.linspace(np.min(tortuosities),np.max(tortuosities),n_bins)
     mean_bins=np.linspace(np.min(means),np.max(means),n_bins)
     stddv_bins=np.linspace(np.min(stddvs),np.max(stddvs),n_bins)
+    
+    if not os.path.exists(dc_statsdir_href.getpath()):
+        os.mkdir(dc_statsdir_href.getpath())
+        pass
     
     tort_hist_href=hrefv("tortuosity_histogram.png",dc_statsdir_href)
     mean_hist_href=hrefv("means_histogram.png",dc_statsdir_href)
@@ -54,7 +58,7 @@ def run(_xmldoc,_element,
     pl.figure()
     pl.clf()
     pl.title('Tortuosities Histogram')
-    pl.hist(tortuosities*180.0/np.pi,bins=tort_bins)
+    pl.hist(tortuosities*180.0/np.pi,bins=tort_bins*180.0/np.pi)
     pl.xlabel('Tortuosity [degrees]')
     pl.ylabel('Number of Specimens [unitless]')
     pl.savefig(tort_hist_href.getpath(),transparent=False)
@@ -62,7 +66,7 @@ def run(_xmldoc,_element,
     pl.figure()
     pl.clf()
     pl.title('Average Point Spacing Histogram')
-    pl.hist(means*1e6,bins=mean_bins)
+    pl.hist(means*1e6,bins=mean_bins*1e6)
     pl.xlabel('Average Point Spacing [um]')
     pl.ylabel('Number of Specimens [unitless]')
     pl.savefig(mean_hist_href.getpath(),transparent=False)
@@ -70,7 +74,7 @@ def run(_xmldoc,_element,
     pl.figure()
     pl.clf()
     pl.title('Standard Deviation of Point Spacings Histogram')
-    pl.hist(stddvs*1e6,bins=stddv_bins)
+    pl.hist(stddvs*1e6,bins=stddv_bins*1e6)
     pl.xlabel('Standard Deviations [um]')
     pl.ylabel('Number of Specimens [unitless]')
     pl.savefig(stddv_hist_href.getpath(),transparent=False)
@@ -156,7 +160,7 @@ def run(_xmldoc,_element,
     return {
         "dc:tortuosity_vs_pointspacingfreq_slope":coefficients[0],
         "dc:tortuosity_vs_pointspacingfreq_offset":coefficients[1],
-        "dc:tortuosity_histogram", tort_hist_href,
+        "dc:tortuosity_histogram": tort_hist_href,
         "dc:mean_histogram": mean_hist_href,
         "dc:stddv_histogram": stddv_hist_href,
         "dc:tort_distribution": tort_distribution_href,

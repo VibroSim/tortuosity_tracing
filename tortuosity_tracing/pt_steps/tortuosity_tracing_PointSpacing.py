@@ -104,8 +104,8 @@ def run(_xmldoc,_element):
   
   #spreadsheetoutput_writer.close()
   tortuosity_table.to_csv(csvoutput_href.getpath())
-  print ('Done!\nThe statistics are saved in \"%s\".' % (csvoutput_href.getpath())
+  print('Done!\nThe statistics are saved in \"%s\".' % (csvoutput_href.getpath()))
   return { 
-    "dc:summarytable": csvoutput_href,
+    "dc:summarytable": csvoutput_href
   }  
 
