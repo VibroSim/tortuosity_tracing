@@ -246,34 +246,60 @@ def evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing):
 ######################## funtion 3 ########################
 ### Inputs: [sampling_thetas]
 ### Outputs: [filtered],[eq_lengths] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Need to change the filter!!!!!!!!!!!!!
-def filtering(sampling_thetas,point_spacing,f_cutoff):
+def filtering(sampling_thetas,point_spacing,f_cutoff,f_rampwidth):
     """point_spacing is the uniform distance spacing of the sampling_thetas, in meters
     f_cutoff is the cutoff spatial frequency in m^-1"""
+
+    assert(f_cutoff > 0.0)
+    assert(f_rampwidth >= 0.0)
     N_samp =sampling_thetas.shape[0] #number of sample points
-    #yf = np.fft.fft(sampling_thetas)
+    yf = np.fft.fft(sampling_thetas)*point_spacing
     #assert((np.linalg.norm(yf,2)/np.linalg.norm(yf.real,2))-1 <= 1.0)
-    xf = np.arange(N_samp,dtype='d')/N_samp/point_spacing
+    df = 1.0/(N_samp*point_spacing)
+    xf = np.arange(N_samp,dtype='d')*df
     xf[N_samp//2:] -= 1.0/point_spacing # symmetric about 0 
+
+    ### Apply smoothed tophat  window
+    unchanged_region=(xf > -f_cutoff+f_rampwidth/2.0) & (xf < f_cutoff-f_rampwidth/2.0)
+    ramp_region_neg = (xf >= -f_cutoff-f_rampwidth/2.0) & (xf <= -f_cutoff+f_rampwidth/2.0)
+    ramp_region_pos = (xf >= f_cutoff-f_rampwidth/2.0) & (xf <= f_cutoff+f_rampwidth/2.0)
+
+    ramp_neg = (1.0+np.cos(np.pi*(xf+f_cutoff-f_rampwidth/2.0)/f_rampwidth))/2.0
+    ramp_pos = (1.0+np.cos(np.pi*(xf-f_cutoff+f_rampwidth/2.0)/f_rampwidth))/2.0
+
+    yf_filtered = np.zeros(N_samp,dtype='D')
+    yf_filtered[unchanged_region] = yf[unchanged_region]
+    yf_filtered[ramp_region_neg]=ramp_neg[ramp_region_neg]*yf[ramp_region_neg]
+    yf_filtered[ramp_region_pos]=ramp_pos[ramp_region_pos]*yf[ramp_region_pos]
+
+    filtered_complex_thetas=np.fft.ifft(yf_filtered)*df*N_samp
+    assert((np.linalg.norm(filtered_complex_thetas.imag,2)/np.linalg.norm(filtered_complex_thetas,2)) <= 1.0e-8)
+    filtered_thetas=np.real(filtered_complex_thetas) #can be done because of assertion
+
+    pl.figure()
+    pl.plot(xf,yf,'-',
+            xf,yf_filtered,'-')
+    pl.xlabel('Spatial frequency (1/m)')
+    pl.ylabel('Angular spectrum (radian meters)')
+    pl.legend(('Unfiltered','Filtered'))
     #adapted from:
     #https://stackoverflow.com/questions/12093594/how-to-implement-band-pass-butterworth-filter-with-scipy-signal-butter
-    def butter_bandpass(lowcut, fs, order=5):
-        nyq = 0.5 * fs
-        low = lowcut / nyq
-        #high = highcut / nyq
-        b, a = butter(order, low, btype='low')
-        return b, a
-        pass
-    def butter_bandpass_filter(data, lowcut, fs, order=5):
-        b, a = butter_bandpass(lowcut, fs, order=order)
-        y = lfilter(b, a, data)
-        return y
-        pass
+    #def butter_lowpass(lowcut, fs, order=5):
+    #    nyq = 0.5 * fs
+    #    low = lowcut / nyq
+    #    #high = highcut / nyq
+    #    b, a = butter(order, low, btype='low')
+    #    return b, a
+    #def butter_lowpass_filter(data, lowcut, fs, order=5):
+    #    b, a = butter_lowpass(lowcut, fs, order=order)
+    #    y = lfilter(b, a, data)
+    #    return y
     
-    low= f_cutoff
-    fsamp=1.0/point_spacing
-    order=5
-    filtered_thetas=butter_bandpass_filter(sampling_thetas,low,fsamp,order=order)
-    #pl.plot(xf,np.fft.ifft(filtered_thetas))
+    #low= f_cutoff
+    #fsamp=1.0/point_spacing
+    #order=5
+    #filtered_thetas=butter_lowpass_filter(sampling_thetas,low,fsamp,order=order)
+    ##pl.plot(xf,np.fft.ifft(filtered_thetas))
     eq_lengths=np.ones(filtered_thetas.shape[0])*point_spacing
     filtered_ypath=np.cumsum(np.sin(filtered_thetas))*point_spacing
     filtered_xpath=np.cumsum(np.cos(filtered_thetas))*point_spacing
@@ -374,7 +400,7 @@ def tortuosity_plots(
 
 ### Now that the functions are all defined, time to use them.
 
-def histogram_from_svgs(filenames,measnums,f_cutoff,specimen,savedir,point_spacing):
+def histogram_from_svgs(filenames,measnums,f_cutoff,f_rampwidth,specimen,savedir,point_spacing):
     all_path_xout=[]
     all_path_yout=[]
     all_theta=[]
@@ -394,7 +420,7 @@ def histogram_from_svgs(filenames,measnums,f_cutoff,specimen,savedir,point_spaci
             
             (full_path_xout, path_theta_out, full_path_yout, full_path_theta_out, full_path_thetax_out, full_path_thetay_out, full_path_thlength_out, path_thlength_out,num_steps) = get_thetas(filenames[i],path_index)
             sampling_thetas=evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing)
-            (filtered_theta,eq_lengths,filtered_xpath,filtered_ypath)=filtering(sampling_thetas,point_spacing,f_cutoff)
+            (filtered_theta,eq_lengths,filtered_xpath,filtered_ypath)=filtering(sampling_thetas,point_spacing,f_cutoff,f_rampwidth)
             if measnums is None:
                 measnum=None
                 pass

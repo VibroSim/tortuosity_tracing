@@ -8,7 +8,7 @@ import hashlib
 from limatix import dc_value
 
 
-def run(_xmldoc,_element,fcutoff_numericunits,dc_specimen_str=None,point_spacing_numericunits=dc_value.numericunitsvalue(1.0e-7,"m")):
+def run(_xmldoc,_element,fcutoff_numericunits,frampwidth_numericunits,dc_specimen_str=None,point_spacing_numericunits=dc_value.numericunitsvalue(1.0e-7,"m")):
 
     if dc_specimen_str is None:
         dc_specimen = _xmldoc.xpathsingle("dc:summary/dc:specimen")
@@ -23,6 +23,7 @@ def run(_xmldoc,_element,fcutoff_numericunits,dc_specimen_str=None,point_spacing
     svg_filenames=[]
 
     fcutoff=fcutoff_numericunits.value(units="m^-1")
+    frampwidth=frampwidth_numericunits.value(units="m^-1")
 
     for meastag in meastags:
 
@@ -52,7 +53,7 @@ def run(_xmldoc,_element,fcutoff_numericunits,dc_specimen_str=None,point_spacing
      tortuosity_path_filenames,
      tortuosity_plot_filenames,
      tortuosity_path_indexes,
-     num_steps) = tortuosity_tracing.histogram_from_svgs(svg_filenames,svg_measnums,fcutoff,dc_specimen_str,dest_href.getpath(),point_spacing_numericunits.value(units="m"))
+     num_steps) = tortuosity_tracing.histogram_from_svgs(svg_filenames,svg_measnums,fcutoff,frampwidth,dc_specimen_str,dest_href.getpath(),point_spacing_numericunits.value(units="m"))
     
 
 
