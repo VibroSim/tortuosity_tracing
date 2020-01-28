@@ -29,7 +29,7 @@ def get_thetas(filename,path_num):
     """ Read the specified .svg file, containing a single spline, 
 as input. A scaling of 1000 between physical units and .svg units 
 is assumed (i.e. 1 mm as recorded in the .svg is actually 1 micron). 
-We break each segment into 20 steps, and return the angle
+We break each segment into 50 steps, and return the angle
 of each step and the length of each step, along with x and y coordinates.
 
     inputs: [filename] : name of .svg file to read
@@ -62,7 +62,7 @@ of each step and the length of each step, along with x and y coordinates.
     pathpos = 0  # index into pathcmds
 
     # Here is where we want to over sample and choose the value that is closest to the t that we want
-    num_steps = 20 # number of steps through each curve segment
+    num_steps = 50 # number of steps through each curve segment
     seg_t=np.linspace(0.0,1.0,num_steps) # Times for coordinate evaluation within each segment
     seg_dt = 1.0/(num_steps-1.0)
 
@@ -209,7 +209,7 @@ def evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing):
     #           f=g
     # This is done in 1 line where
     # d_seg[i,j] represents the jth element of the i'th point click
-    # based on each segment being split into ~ 20 pieces (i)
+    # based on each segment being split into num_steps pieces (i)
     d_seg = np.cumsum(np.concatenate((np.array((0,),dtype='d'),path_thlength_out.reshape(np.prod(path_thlength_out.shape)))))[:-1].reshape(path_thlength_out.shape)#meters
 
     ### Pull in full crack length data ###

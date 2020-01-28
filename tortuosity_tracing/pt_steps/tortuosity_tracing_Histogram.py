@@ -76,7 +76,7 @@ def run(_xmldoc,_element,fcutoff_numericunits,frampwidth_numericunits,dc_specime
     StdDv=np.std(thlength_final)*num_steps
     fig = pl.figure(str(svg_filenames[0]))
     pl.clf()
-    #svg_to_histogram.py [49] divides spaces between clicks into 20 steps
+    #svg_to_histogram.py [49] divides spaces between clicks into num_steps steps
     #So, to get distance between point clicks, we need to multiply back
     (N,B,P)=pl.hist(thlength_final*num_steps*10**6,bins=50)
     pl.title('Point Click Spacing',fontsize=30)
