@@ -24,8 +24,8 @@ def main(args=None):
         args=sys.argv
         pass
 
-    if len(args) < 6 or os.path.splitext(args[4])[1] != '.xlg':
-        print("Usage: tiffs_to_xlg <specimen> <date> <perfby> <xlg_file.xlg>  <tiff_files.tif> ...")
+    if len(args) < 8 or os.path.splitext(args[4])[1] != '.xlg':
+        print("Usage: tiffs_to_xlg <specimen> <date> <perfby> <xlg_file.xlg> <XResolution in m/px ("None" if you don't know)> <YResolution in m/px ("None" if you don't know)> <tiff_files.tif> ...")
         print(" Creates an experiment log from the given .tif files")
         sys.exit(0)
         pass
@@ -34,7 +34,9 @@ def main(args=None):
     date=args[2]
     perfby=args[3]
     xlg_file=args[4]
-    tiff_files = args[5:]
+    xResolution=args[5]
+    yResolution=args[6]
+    tiff_files = args[7:]
     
     date_parsed=datetime.datetime.strptime(date,"%Y-%m-%d")  # Exception here if you don't give the date in a reasonable format
     
@@ -55,6 +57,8 @@ def main(args=None):
     xlg.addsimpleelement(summary,"dc:specimen",(specimen,))
     xlg.addsimpleelement(summary,"dc:perfby",(perfby,))
     xlg.addsimpleelement(summary,"dc:date",(date,))
+    xlg.addsimpleelement(summary,"dc:XRes",(xResolution,))
+    xlg.addsimpleelement(summary,"dc:YRes",(yResolution,))
     dest_el=xlg.addelement(summary,"dc:dest")
     # dest_el will be the directory containing the first .tiff
 

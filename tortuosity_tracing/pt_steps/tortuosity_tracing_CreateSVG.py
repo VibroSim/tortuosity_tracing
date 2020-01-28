@@ -7,7 +7,8 @@ from limatix import dc_value
 def run(_xmldoc,_element,dc_tortuositytiff_href):
     
     tiff_filename=dc_tortuositytiff_href.getpath()
-
+    xResolution=_xmldoc.xpathsingle("dc:summary/dc:XRes")
+    yResolution=_xmldoc.xpathsingle("dc:summary/dc:YRes")
 
     #(tiff_basename,tiff_ext)=os.path.splitext(tiff_filename)
     #assert(tiff_ext.lower()=='.tiff' or tiff_ext.lower()=='.tif')
@@ -26,6 +27,6 @@ def run(_xmldoc,_element,dc_tortuositytiff_href):
 
     
     
-    tortuosity_tracing.convert_tiff_to_svg(tiff_filename,svg_filename)
+    tortuosity_tracing.convert_tiff_to_svg(tiff_filename,svg_filename,xResolution,yResolution)
 
     return { "dc:tortuositysvg": svg_href }

@@ -25,7 +25,7 @@ except ImportError:
     pass
 
 
-def convert_tiff_to_svg(input_filename,output_filename):
+def convert_tiff_to_svg(input_filename,output_filename,xResolution,yResolution):
     """The objective of this function is to read a given tif image and from it, create a small svg file.
     The svg file will have a locked image that conserves distances."""
     #    The conversion between physical distances and distances in the .svg
@@ -88,6 +88,9 @@ def convert_tiff_to_svg(input_filename,output_filename):
         svg_width= tif_width*1000.0
         svg_height=tif_height*1000.0
         pass
+    elif xResolution== None or yResolution== None:
+        print ("Resolution was not specified.")
+        print ("Please Rerun 'tiffs_to_xlg' with x and y resolutions in m/px")
     else:
         inidata=img.tag
         #ResolutionX=float(inidata[282][0][0]/inidata[282][0][1])
@@ -101,13 +104,13 @@ def convert_tiff_to_svg(input_filename,output_filename):
         ### This shouldn't change too much if we use the same settings
         ### for each trace.
 
-        ResolutionX=.129e-6#[m/px]
-        ResolutionY=.126e-6#[m/px]
+        ResolutionX=xResolution#[m/px]
+        ResolutionY=yResolution#[m/px]
         #width[mm]=([px]*[mm/in])/[px/in]
         tif_width=ImageWidth*ResolutionX # [m]
         tif_height=ImageHeight*ResolutionY # [m]
 
-        # let's make 1um = 1 svg mm => tif_dimmension*1000
+        # let's make 1um = 1 SVGmm => tif_dimmension*1,000,000
         svg_width= tif_width*1.0e6
         svg_height=tif_height*1.0e6
         #pdb.set_trace()
