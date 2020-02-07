@@ -99,24 +99,22 @@ def convert_tiff_to_svg(input_filename,output_filename,xResolution,yResolution):
         ImageHeight=float(inidata[257][0])
         ### ^ for reading the .TIFF files
         
-        ### This is a temperary fix with an approximate value for
-        ### the resolution based on a .CSV from the microscope.
-        ### This shouldn't change too much if we use the same settings
-        ### for each trace.
-
         ResolutionX=xResolution#[m/px]
         ResolutionY=yResolution#[m/px]
-        #width[mm]=([px]*[mm/in])/[px/in]
+        #width[m]=[px]*[m/px]
         tif_width=ImageWidth*ResolutionX # [m]
         tif_height=ImageHeight*ResolutionY # [m]
 
-        # let's make 1um = 1 SVGmm => tif_dimmension*1,000,000
-        svg_width= tif_width*1.0e6
-        svg_height=tif_height*1.0e6
+        ## 1 SVGum = 1.5436 um
+        ## mm are the smallest metric inkscape unit
+        ## so letting 1.5436 um = 1 SVGmm yields easily
+        ## scaleable results
+        svg_width= tif_width*1e6 #*1.5436
+        svg_height=tif_heigh*1e6 #*1.5436
         #pdb.set_trace()
         pass
-    #Now, to build the svg file
-    #load in the template
+    ## Now, to build the svg file
+    ## load in the svg file template:
     template=etree.XML("""<svg:svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -172,6 +170,7 @@ def convert_tiff_to_svg(input_filename,output_filename,xResolution,yResolution):
 /> 
 </svg:svg>""")
 
+    ## Next, Add in the calculated values and image:
     template.xpath("/svg:svg",namespaces={"svg":"http://www.w3.org/2000/svg"})[0].attrib["width"]=str(svg_width)+"mm"
     template.xpath("/svg:svg",namespaces={"svg":"http://www.w3.org/2000/svg"})[0].attrib["height"]=str(svg_height)+"mm"
     template.xpath("/svg:svg",namespaces={"svg":"http://www.w3.org/2000/svg"})[0].attrib["viewBox"]="0 0 "+str(svg_width)+" "+str(svg_height)
@@ -183,6 +182,4 @@ def convert_tiff_to_svg(input_filename,output_filename,xResolution,yResolution):
     svgfile = etree.ElementTree(template)
     svgfile.write(output_filename)
     
-    
-    ### Add in inkscape zoom presets to svg file
     pass

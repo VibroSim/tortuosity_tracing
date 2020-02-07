@@ -3,12 +3,15 @@ import posixpath
 import tortuosity_tracing
 
 from limatix import dc_value
+from limatix.dc_value import hrefvalue as hrefv
+from limatix.dc_value import numericunitsvalue as numericunitsv
+from limatix.xmldoc import xmldoc
 
-def run(_xmldoc,_element,dc_tortuositytiff_href):
+def run(_xmldoc,_element,dc_tortuositytiff_href,dc_XRes_numericunits,dc_YRes_numericunits):
     
     tiff_filename=dc_tortuositytiff_href.getpath()
-    xResolution=_xmldoc.xpathsingle("dc:summary/dc:XRes")
-    yResolution=_xmldoc.xpathsingle("dc:summary/dc:YRes")
+    xResolution=dc_XRes_numericunits.value("m/px")
+    yResolution=dc_YRes_numericunits.value("m/px")
 
     #(tiff_basename,tiff_ext)=os.path.splitext(tiff_filename)
     #assert(tiff_ext.lower()=='.tiff' or tiff_ext.lower()=='.tif')

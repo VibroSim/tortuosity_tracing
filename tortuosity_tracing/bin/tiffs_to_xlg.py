@@ -25,8 +25,8 @@ def main(args=None):
         pass
 
     if len(args) < 8 or os.path.splitext(args[4])[1] != '.xlg':
-        print("Usage: tiffs_to_xlg <specimen> <date> <perfby> <xlg_file.xlg> <XResolution in m/px ("None" if you don't know)> <YResolution in m/px ("None" if you don't know)> <tiff_files.tif> ...")
-        print(" Creates an experiment log from the given .tif files")
+        print('Usage: tiffs_to_xlg <specimen> <date> <perfby> <xlg_file.xlg> <XResolution in m/px ("None" if unknown)> <YResolution in m/px ("None" if unknown)> <tiff_files.tif> ...')
+        print(' Creates an experiment log from the given .tif files')
         sys.exit(0)
         pass
         
@@ -34,7 +34,7 @@ def main(args=None):
     date=args[2]
     perfby=args[3]
     xlg_file=args[4]
-    xResolution=args[5]
+    xResolution=float(args[5])
     yResolution=args[6]
     tiff_files = args[7:]
     
@@ -57,8 +57,10 @@ def main(args=None):
     xlg.addsimpleelement(summary,"dc:specimen",(specimen,))
     xlg.addsimpleelement(summary,"dc:perfby",(perfby,))
     xlg.addsimpleelement(summary,"dc:date",(date,))
-    xlg.addsimpleelement(summary,"dc:XRes",(xResolution,))
-    xlg.addsimpleelement(summary,"dc:YRes",(yResolution,))
+    #xRes_el=xlg.addelement(summary,"dc:XRes")
+    #xRes_href=dc_value.numericunitsvalue(xResolution,"m/px")
+    #xRes_href.xmlrepr(xlg,xRes_el)
+    #xlg.addsimpleelement(summary,"dc:YRes",(yResolution,))
     dest_el=xlg.addelement(summary,"dc:dest")
     # dest_el will be the directory containing the first .tiff
 
@@ -75,6 +77,12 @@ def main(args=None):
         tiff_el = xlg.addelement(meas_el,"dc:tortuositytiff")
         tiff_href = dc_value.hrefvalue(pathname2url(tiff_file),contexthref=".")
         tiff_href.xmlrepr(xlg,tiff_el)
+        xRes_el=xlg.addelement(meas_el,"dc:XRes")
+        xRes_href=dc_value.numericunitsvalue(xResolution,"m/px")
+        xRes_href.xmlrepr(xlg,xRes_el)
+        yRes_el=xlg.addelement(meas_el,"dc:YRes")
+        yRes_href=dc_value.numericunitsvalue(yResolution,"m/px")
+        yRes_href.xmlrepr(xlg,yRes_el)
         measnum+=1
         pass
         
