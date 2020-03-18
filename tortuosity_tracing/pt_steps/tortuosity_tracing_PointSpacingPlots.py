@@ -82,11 +82,12 @@ def run(_xmldoc,_element,
     ### Build the distributions
     pl.figure()
     pl.clf()
-    pl.title('Tortuosities Distribution')
+    pl.title('Tortuosity Values',fontsize=20)
     pl.xticks(range(len(means)),specimens,rotation=90)
     pl.plot(range(len(tortuosities)) ,tortuosities*180.0/np.pi,'*')
-    pl.ylabel('Tortuosity [degrees]')
+    pl.ylabel('Tortuosity [degrees]',fontsize=15)
     pl.grid()
+    pl.tight_layout()
     pl.savefig(tort_distribution_href.getpath(),transparent=False)
     
     pl.figure()
@@ -96,6 +97,7 @@ def run(_xmldoc,_element,
     pl.errorbar(range(len(means)),means*1e6,fmt='o',yerr=stddvs*1e6)
     pl.ylabel('Average Point spacing [um]')
     pl.grid()
+    pl.tight_layout()
     pl.savefig(mean_distribution_href.getpath(),transparent=False)
     
     pl.figure()
@@ -105,6 +107,7 @@ def run(_xmldoc,_element,
     pl.plot(range(len(stddvs)),stddvs*1e6,'D')
     pl.ylabel('Point Spacing Standard Deviation [um]')
     pl.grid()
+    pl.tight_layout()
     pl.savefig(stddv_distribution_href.getpath(),transparent=False)
 
     ### Other Figures
@@ -116,6 +119,7 @@ def run(_xmldoc,_element,
     pl.legend(('True Values','Linear Regression: \ny=%.2fx+%.2f rad for x in m^-1' % (coefficients[0],coefficients[1])),prop={'size': 10},loc='best')
     pl.xlabel('Spatial Frequency [um^-1]')
     pl.ylabel('Tortuosity [degrees]')
+    pl.tight_layout()
     pl.savefig(inv_mean_vs_tort_href.getpath(),transparent=False)
     
     pl.figure()
@@ -125,6 +129,7 @@ def run(_xmldoc,_element,
     pl.plot(range(len(stddvs)),np.array(stddvs)/np.array(means),'s')
     pl.ylabel('Standard Deviation / Mean [unitless]')
     pl.grid()
+    pl.tight_layout()
     pl.savefig(stddv_over_mean_href.getpath(),transparent=False)
     
     #### Adapted from: https://stackoverflow.com/questions/10532614/can-matplotlib-add-metadata-to-saved-figures

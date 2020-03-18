@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<prx:processinginstructions xmlns:prx="http://limatix.org/processtrak/processinginstructions" xmlns:dcv="http://limatix.org/dcvalue" xmlns:sdb="http://limatix.org/specimen" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://limatix.org/datacollect" xmlns:chx="http://limatix.org/checklist" xmlns:pt="http://limatix.org/processtrak">
+
+  <!-- Experiment Logs -->
+  <prx:inputfiles>
+    <prx:inputfile xlink:href="[XLG_FILENAME1].xlg"/>
+    <prx:inputfile xlink:href="[XLG_FILENAME2].xlg"/>
+    <!-- The xlg files input here should be the ones
+         created using "tiffs_to_xlg.py"  -->
+
+    <prx:outputfile/><!-- output file corresponding to the .prx processing script itself 
+			ie "processtrak SAMPLE_tortuosity.prx -f SAMPLE_tortuosity.prx etc -->
+
+  </prx:inputfiles>
+  <!-- if outputfile tag is omitted and input name ends with .xlg, outputfile defaults to original with extension changed to .xlp -->
+  
+  <prx:elementmatch>/dc:experiment/dc:measurement</prx:elementmatch>
+  <!-- Processing for thermal data... using element match above -->
+  
+  <!-- If you want to run TraceSVG on a subset of the measurements,
+  you can select them with the -l option to processtrak, e.g.
+  processtrak tortuosity_tracing.prx -s TraceSVG -l "dc:measnum < 5" -->
+
+  <prx:inputfilematch>*.xlg</prx:inputfilematch> <!-- by default, steps operate on .xlg files -->
+  <prx:step name="CreateSVG">
+    <prx:script name="tortuosity_tracing_CreateSVG.py"/>
+  </prx:step>
+
+  <prx:step name="TraceSVG">
+    <prx:script name="tortuosity_tracing_TraceSVG.py"/>
+  </prx:step>
+
+  <prx:step name="CreateHistogram">
+    <prx:elementmatch>/dc:experiment</prx:elementmatch>   
+    <prx:param name="fcutoff" dcv:units="m^-1">1.0e5</prx:param>
+    <prx:param name="frampwidth" dcv:units="m^-1">1.0e0</prx:param>
+    <prx:script name="tortuosity_tracing_Histogram.py"/>
+  </prx:step>
+
+<!-- Be Sure to run the copyinput step on the .prx file itself before running the next 2 steps -->
+
+  <prx:step name="PointSpacing"> <!-- Run on .prx file itself-->
+    <prx:inputfilematch>*.prx</prx:inputfilematch>
+    <prx:elementmatch>/prx:inputfiles</prx:elementmatch> <!--cycle through each inputfile of prx:inputfiles-->
+    <prx:param name="fcutoff" dcv:units="m^-1">1.0e5</prx:param>
+    <prx:script name="tortuosity_tracing_PointSpacing.py"/>
+    <prx:param name="dc_statsdir" xlink:href="multiple_specimen_stats/"/>
+  </prx:step>  
+
+  <prx:step name="PointSpacingPlots"> <!-- Run on .prx file itself-->
+    <prx:inputfilematch>*.prx</prx:inputfilematch>
+    <prx:elementmatch>/prx:inputfiles</prx:elementmatch> 
+    <prx:script name="tortuosity_tracing_PointSpacingPlots.py"/>
+    <prx:param name="dc_statsdir" xlink:href="multiple_specimen_stats/"/>
+  </prx:step>
+
+</prx:processinginstructions>

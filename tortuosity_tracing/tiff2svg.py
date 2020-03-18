@@ -110,7 +110,7 @@ def convert_tiff_to_svg(input_filename,output_filename,xResolution,yResolution):
         ## so letting 1.5436 um = 1 SVGmm yields easily
         ## scaleable results
         svg_width= tif_width*1e6 #*1.5436
-        svg_height=tif_heigh*1e6 #*1.5436
+        svg_height=tif_height*1e6 #*1.5436
         #pdb.set_trace()
         pass
     ## Now, to build the svg file

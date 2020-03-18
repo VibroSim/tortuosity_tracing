@@ -277,11 +277,13 @@ def filtering(sampling_thetas,point_spacing,f_cutoff,f_rampwidth):
     filtered_thetas=np.real(filtered_complex_thetas) #can be done because of assertion
 
     pl.figure()
-    pl.plot(xf,yf,'-',
-            xf,yf_filtered,'-')
-    pl.xlabel('Spatial frequency (1/m)')
-    pl.ylabel('Angular spectrum (radian meters)')
-    pl.legend(('Unfiltered','Filtered'))
+    pl.plot(xf*10**-6,np.sqrt(yf**2)*10**6,'-',
+            xf*10**-6,np.sqrt(yf_filtered**2)*10**6,'-')
+    #pl.title('Magnitudes of ',fontsize=20)
+    pl.xlabel('Spatial frequency (1/um)',fontsize=15)
+    pl.ylabel('Angular spectrum (radian microns)',fontsize=15)
+    pl.legend(('Unfiltered','Filtered'),fontsize=15)
+    pl.xlim((-1.5, 1.5))
     #adapted from:
     #https://stackoverflow.com/questions/12093594/how-to-implement-band-pass-butterworth-filter-with-scipy-signal-butter
     #def butter_lowpass(lowcut, fs, order=5):
@@ -328,13 +330,13 @@ def draw_path(full_path_xout,full_path_yout,filtered_xpath,filtered_ypath,measnu
     pl.clf()
     pl.plot((full_path_xout-full_path_xout[0])*1.e6,(full_path_yout-full_path_yout[0])*1.e6,'-',
             filtered_xpath*1.e6,filtered_ypath*1.e6,'-')
-    pl.xlabel('Horizontal position (um)')
-    pl.ylabel('Vertical position (um)')
+    pl.xlabel('Horizontal position (um)',fontsize=15)
+    pl.ylabel('Vertical position (um)',fontsize=15)
     if measnum is not None:
-        pl.title('Original and filtered path; measnum=%d' % (measnum))
+        pl.title('Original and filtered path; measnum=%d' % (measnum),fontsize=20)
         pass
     else:
-        pl.title('Original and filtered path')
+        pl.title('Original and filtered path',fontsize=20)
         pass
 
     if savedir is not None:
@@ -364,10 +366,10 @@ def tortuosity_plots(
     dbin = (bins[-1]-bins[0])/(n_bins-1) # Theta stepsize per bin
     (n_01,b_01,p_01)=pl.hist(theta_final[:]*180.0/np.pi,bins=bins,weights=thlength_final*10**6)
     pl.plot(bins,(1.0/(np.sqrt(2.0*np.pi)*avg_sigma))*np.exp(-(bins*np.pi/180.0-avg_mu)**2.0/ (2.0*avg_sigma**2.0))*np.sum(thlength_final[:])*dbin*np.pi/180.0,'-')#fits to a gaussian curve
-    pl.figtext(0.55,0.75,('mu=%.1fdeg\nsigma=%.1fdeg' %(avg_mu*180.0/np.pi,avg_sigma*180.0/np.pi)),bbox={'facecolor':'white','alpha':0.8,'pad':10},fontsize=25)
-    pl.title('Angle Distribution',fontsize=30)
-    pl.ylabel('Number of Instances',fontsize=20)
-    pl.xlabel('Angle (degrees)',fontsize=20)
+    pl.figtext(0.65,0.75,('mu=%.1fdeg\nsigma=%.1fdeg' %(avg_mu*180.0/np.pi,avg_sigma*180.0/np.pi)),bbox={'facecolor':'white','alpha':0.8,'pad':10},fontsize=15)
+    pl.title('Angle Distribution',fontsize=20)
+    pl.ylabel('Number of Instances',fontsize=15)
+    pl.xlabel('Angle (degrees)',fontsize=15)
     if savedir is not None:
         unfiltered_filename="%s_histogram_unfiltered.png" % (specimen)
         pl.savefig(os.path.join(savedir,unfiltered_filename),dpi=300)
@@ -380,10 +382,10 @@ def tortuosity_plots(
     pl.clf()
     (n_02,b_02,p_02)=pl.hist(filtered_thetas[:]*180.0/np.pi,bins=bins,weights=eq_lengths_final*10**6)
     pl.plot(bins,(1.0/(np.sqrt(2.0*np.pi)*avg_filtered_sigma))*np.exp(-(bins*np.pi/180.0-avg_filtered_mu)**2.0/(2.0*avg_filtered_sigma**2.0))*np.sum(eq_lengths_final[:])*dbin*np.pi/180.0,'-') #fits to a gaussian curve
-    pl.figtext(0.55,0.75,('mu=%.1fdeg\nsigma=%.1fdeg' %(avg_filtered_mu*180.0/np.pi,avg_filtered_sigma*180.0/np.pi)),bbox={'facecolor':'white','alpha':0.8,'pad':10},fontsize=25)
-    pl.title('Filtered Angle Distribution',fontsize=30)
-    pl.ylabel('Number of Instances',fontsize=20)
-    pl.xlabel('Angle (degrees)',fontsize=20)
+    pl.figtext(0.65,0.75,('mu=%.1fdeg\nsigma=%.1fdeg' %(avg_filtered_mu*180.0/np.pi,avg_filtered_sigma*180.0/np.pi)),bbox={'facecolor':'white','alpha':0.8,'pad':10},fontsize=15)
+    pl.title('Filtered Angle Distribution',fontsize=20)
+    pl.ylabel('Number of Instances',fontsize=15)
+    pl.xlabel('Angle (degrees)',fontsize=15)
     if savedir is not None:
         filtered_filename="%s_histogram_filtered.png" % (specimen)
         pl.savefig(os.path.join(savedir,filtered_filename),dpi=300)
