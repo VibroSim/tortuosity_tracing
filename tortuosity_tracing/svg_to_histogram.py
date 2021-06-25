@@ -21,6 +21,7 @@ def get_num_paths(filename):
 
     return len(path_els)
 
+######################## function 1 ########################
 ### inputs: [svgfiles],[i] <-- "i" will be assigned in the loop that this function is made to be used for
 ### outputs: [full_path_xout],[path_theta_out],[full_path_yout],[full_path_theta_out],
 ###          [full_path_thetax_out],[full_path_thetay_out],
@@ -51,16 +52,17 @@ of each step and the length of each step, along with x and y coordinates.
 
     #assert(len(path_els)==1)  # Assume only one <path> in the .svg file
 
-    # Extract "d=" attribute
+    # Extract "d=" attribute: the beginning of the path
     d_attr=path_els[path_num].attrib["d"]
 
-    # Split d attribute by spaces and commas
+    # Split d attribute by spaces (separating coordinate pairs) and commas (separating x from y)
     pathcmds=d_attr.replace(",",' ').split()
 
     # Initialize our position to the origin
     curpos = np.array((0,0),dtype='d')
     pathpos = 0  # index into pathcmds
 
+    # Create time parameter, t=seg_t for x(t) and y(t) function 
     # Here is where we want to over sample and choose the value that is closest to the t that we want
     num_steps = 50 # number of steps through each curve segment
     seg_t=np.linspace(0.0,1.0,num_steps) # Times for coordinate evaluation within each segment
@@ -71,7 +73,7 @@ of each step and the length of each step, along with x and y coordinates.
     seg_tsteps = [ 0.0 ]
     seg_tsteps.extend([ seg_dt ]*(num_steps-1))
     seg_tsteps=np.array(seg_tsteps,dtype='d')
-    # seg_tsteps is now [ 0.0, seg_dt, seg_dt, seg_dt ... ]
+    # seg_tsteps is now [ 0.0, seg_dt, seg_dt, seg_dt, ... ]
 
     path_xout = []
     path_yout = []
@@ -142,11 +144,12 @@ of each step and the length of each step, along with x and y coordinates.
                 path_yout.append(ypos)
                 path_tstepout.append(seg_tsteps)
 
-                # dx/dt
-                # (1-t)^3 -> -3*(1-t)^2
-                # (3(1-t)^2)(t) -> -6(1-t)(t) + 3(1-t)^2
-                # 3(1-t)(t^2) -> -3t^2 + 6(1-t)t
-                # t^3  -> 3t^2
+                # Calculate the slopes analytically
+                # x(t)          ->  dx/dt
+                # (1-t)^3       ->  -3*(1-t)^2
+                # (3(1-t)^2)(t) ->  -6(1-t)(t) + 3(1-t)^2
+                # 3(1-t)(t^2)   ->  -3t^2 + 6(1-t)t
+                # t^3           ->  3t^2
 
                 dxpos_dt = (-3.0*(1.0-seg_deriv_t)**2.0)*curpos[0] + (-6.0*(1.0-seg_deriv_t)*seg_deriv_t + 3.0*(1.0-seg_deriv_t)**2.0)*x1 + (-3.0*seg_deriv_t**2.0 + 6.0*(1.0-seg_deriv_t)*seg_deriv_t)*x2 + (3.0*seg_deriv_t**2.0)*x;
 
@@ -160,7 +163,7 @@ of each step and the length of each step, along with x and y coordinates.
                 theta_y = ((1.0-seg_deriv_t)**3.0)*curpos[1] + (3.0*seg_deriv_t*(1-seg_deriv_t)**2.0)*y1 + (3.0*(seg_deriv_t**2.0)*(1-seg_deriv_t))*y2 + ((seg_deriv_t)**3.0)*y;
 
                 # analytical expressions for derivatives have been validated that they match
-                # these numerical evaluations
+                # the numerical evaluations here
                 #theta_numerical = np.arctan2(ypos[1:]-ypos[:-1],xpos[1:]-xpos[:-1])
                 #th_length_numerical = np.sqrt((ypos[1:]-ypos[:-1])**2.0 + (xpos[1:]-xpos[:-1])**2.0)
 
@@ -178,8 +181,8 @@ of each step and the length of each step, along with x and y coordinates.
         else:
             raise ValueError("Unknown path command %s" % (pathcmd))
             pass 
-    full_path_xout=np.concatenate(path_xout)*10**-6 # 10**-6 converts from mm-based SVG with assumed 1000x scale to meters
-    full_path_yout=np.concatenate(path_yout)*10**-6 # 10**-6 converts from mm-based SVG with assumed 1000x scale to meters
+    full_path_xout=np.concatenate(path_xout)*1e-6 # 10**-6 converts from mm-based SVG with assumed 1000x scale to meters
+    full_path_yout=np.concatenate(path_yout)*1e-6 # 10**-6 converts from mm-based SVG with assumed 1000x scale to meters
     full_path_theta_out=np.concatenate(path_theta_out)
     full_path_thetax_out=np.concatenate(path_thetax_out)*1e-6 # 10**-6 converts from mm-based SVG with assumed 1000x scale to meters
     full_path_thetay_out=np.concatenate(path_thetay_out)*1e-6 # 10**-6 converts from mm-based SVG with assumed 1000x scale to meters
@@ -188,7 +191,7 @@ of each step and the length of each step, along with x and y coordinates.
     return (full_path_xout,path_theta_out,full_path_yout,full_path_theta_out, full_path_thetax_out, full_path_thetay_out, full_path_thlength_out, path_thlength_out,num_steps)
     pass
 
-######################## funtion 2 ########################
+######################## function 2 ########################
 ### Inputs: [path_thlength_out][path_theta_out]
 ### Outputs: [sampling_thetas]
 def evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing):
@@ -214,8 +217,7 @@ def evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing):
 
     ### Pull in full crack length data ###
     crack_length= np.max(d_seg) # meters
-    #d0=3.0e-7 # distance between evenly spaced points meters
-    crack_dist = np.arange(np.max(d_seg)//point_spacing,dtype='d')*point_spacing
+    crack_dist = np.arange(crack_length//point_spacing,dtype='d')*point_spacing
     path_theta_out=np.array(path_theta_out, dtype= 'd')#from touple to array
     sampling_thetas=np.zeros(crack_dist.shape)
 
@@ -243,9 +245,9 @@ def evenly_spaced_thetas(path_thlength_out,path_theta_out,point_spacing):
         pass
     return sampling_thetas
 
-######################## funtion 3 ########################
+######################## function 3 ########################
 ### Inputs: [sampling_thetas]
-### Outputs: [filtered],[eq_lengths] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Need to change the filter!!!!!!!!!!!!!
+### Outputs: [filtered],[eq_lengths] 
 def filtering(sampling_thetas,point_spacing,f_cutoff,f_rampwidth):
     """point_spacing is the uniform distance spacing of the sampling_thetas, in meters
     f_cutoff is the cutoff spatial frequency in m^-1"""
