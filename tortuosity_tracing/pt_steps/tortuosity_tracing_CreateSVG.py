@@ -22,7 +22,7 @@ def run(_xmldoc,_element,dc_tortuositytiff_href,dc_XRes_numericunits,dc_YRes_num
     svg_filename=svg_href.getpath()
 
     #Create SVG data
-    if xResolution == "None" and xResolution == "None":
+    if xResolution == 0 and xResolution == 0:
          (svg_width, svg_height)= tortuosity_tracing.convert_tiff_to_svg(tiff_filename)
          pass
     else:
